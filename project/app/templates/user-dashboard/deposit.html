@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deposit to Savings | Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background-color: #f0f2f5;
+        overflow-x: hidden;
+      }
+
+      .app-container {
+        width: 100%;
+        min-height: 100vh;
+        background-color: #fff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        position: relative;
+      }
+
+      .sidebar {
+        width: 300px;
+        background-color: #fff;
+        border-right: 1px solid #e9edef;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow: hidden;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+      }
+
+      .sidebar-overlay.show {
+        display: block;
+      }
+
+      .profile-section {
+        background-color: #1f5ca7;
+        color: white;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .menu-icon {
+        align-self: flex-start;
+        margin-bottom: 15px;
+        cursor: pointer;
+        font-size: 20px;
+        padding: 5px;
+      }
+
+      .mobile-menu-btn {
+        display: none;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background-color: #1f5ca7;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .profile-pic {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 10px;
+        background-color: #ccc;
+      }
+
+      .username {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 5px;
+      }
+
+      .coins {
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        color: #f1c40f;
+      }
+
+      .navigation-section {
+        padding: 15px 10px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .nav-title {
+        font-size: 14px;
+        color: #8a8a8a;
+        margin-bottom: 15px;
+        padding-left: 10px;
+      }
+
+      .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #f5f7fb;
+        border-radius: 12px;
+        padding: 15px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-decoration: none;
+        color: black;
+      }
+
+      .nav-item:hover {
+        background-color: #e8edf5;
+      }
+
+      .nav-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+
+      .nav-label {
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .admin-section {
+        margin-top: auto;
+        padding: 15px 10px;
+        flex-shrink: 0;
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 25px;
+        background-color: #f8f9fa;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .page-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 15px;
+      }
+
+      .back-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+        background-color: white;
+        border: 1px solid #e9edef;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #1f5ca7;
+        font-size: 18px;
+      }
+
+      .back-btn:hover {
+        background-color: #1f5ca7;
+        color: white;
+        transform: translateX(-3px);
+      }
+
+      .page-title-section {
+        flex: 1;
+      }
+
+      .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .page-subtitle {
+        font-size: 16px;
+        color: #777;
+      }
+
+      .deposit-container {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+        height: calc(100vh - 150px);
+      }
+
+      .deposit-form-card {
+        background-color: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-header {
+        margin-bottom: 30px;
+      }
+
+      .form-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .form-description {
+        font-size: 14px;
+        color: #777;
+        line-height: 1.5;
+      }
+
+      .form-section {
+        margin-bottom: 25px;
+      }
+
+      .form-section-title {
+        font-size: 16px;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .form-section-icon {
+        font-size: 16px;
+        color: #1f5ca7;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e9edef;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: border-color 0.3s ease;
+        background-color: #fff;
+      }
+
+      .form-input:focus {
+        outline: none;
+        border-color: #1f5ca7;
+        box-shadow: 0 0 0 3px rgba(31, 92, 167, 0.1);
+      }
+
+      .form-input.amount {
+        font-size: 24px;
+        font-weight: 600;
+        color: #2ecc71;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .currency-symbol {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 24px;
+        font-weight: 600;
+        color: #2ecc71;
+      }
+
+      .amount-input-wrapper {
+        position: relative;
+      }
+
+      .quick-amounts {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .quick-amount-btn {
+        padding: 12px;
+        border: 2px solid #e9edef;
+        border-radius: 8px;
+        background-color: white;
+        color: #333;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .quick-amount-btn:hover {
+        border-color: #1f5ca7;
+        background-color: #f8f9ff;
+        color: #1f5ca7;
+      }
+
+      .quick-amount-btn.active {
+        border-color: #1f5ca7;
+        background-color: #1f5ca7;
+        color: white;
+      }
+
+      .form-select {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e9edef;
+        border-radius: 12px;
+        font-size: 16px;
+        background-color: white;
+        cursor: pointer;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-select:focus {
+        outline: none;
+        border-color: #1f5ca7;
+      }
+
+      .form-textarea {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e9edef;
+        border-radius: 12px;
+        font-size: 14px;
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-textarea:focus {
+        outline: none;
+        border-color: #1f5ca7;
+        box-shadow: 0 0 0 3px rgba(31, 92, 167, 0.1);
+      }
+
+      .form-actions {
+        margin-top: auto;
+        display: flex;
+        gap: 15px;
+      }
+
+      .btn {
+        padding: 16px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background-color: #1f5ca7;
+        color: white;
+        flex: 1;
+      }
+
+      .btn-primary:hover {
+        background-color: #164a94;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(31, 92, 167, 0.3);
+      }
+
+      .btn-secondary {
+        background-color: white;
+        color: #666;
+        border: 2px solid #e9edef;
+        flex: 0 0 auto;
+      }
+
+      .btn-secondary:hover {
+        background-color: #f8f9fa;
+        border-color: #d1d5db;
+      }
+
+      .summary-card {
+        background-color: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+      }
+
+      .summary-header {
+        margin-bottom: 20px;
+      }
+
+      .summary-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+      }
+
+      .summary-subtitle {
+        font-size: 14px;
+        color: #777;
+      }
+
+      .balance-display {
+        background: linear-gradient(135deg, #1f5ca7, #2980b9);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        color: white;
+        text-align: center;
+      }
+
+      .balance-label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.8;
+        margin-bottom: 5px;
+      }
+
+      .balance-amount {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+
+      .balance-change {
+        font-size: 12px;
+        opacity: 0.9;
+      }
+
+      .summary-items {
+        space-y: 15px;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      .summary-item:last-child {
+        border-bottom: none;
+        font-weight: 600;
+        font-size: 16px;
+        color: #2ecc71;
+      }
+
+      .summary-label {
+        font-size: 14px;
+        color: #666;
+      }
+
+      .summary-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+      }
+
+      .info-box {
+        background-color: #f8f9ff;
+        border: 1px solid #e6e8ff;
+        border-radius: 12px;
+        padding: 15px;
+        margin-top: 20px;
+      }
+
+      .info-box-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+
+      .info-box-icon {
+        color: #1f5ca7;
+        font-size: 16px;
+      }
+
+      .info-box-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #1f5ca7;
+      }
+
+      .info-box-text {
+        font-size: 13px;
+        color: #666;
+        line-height: 1.4;
+      }
+
+      /* Success Message */
+      .success-message {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 20px;
+        display: none;
+      }
+
+      .success-message.show {
+        display: block;
+      }
+
+      .success-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+      }
+
+      .success-icon {
+        color: #28a745;
+        font-size: 16px;
+      }
+
+      .success-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #155724;
+      }
+
+      .success-text {
+        font-size: 13px;
+        color: #155724;
+      }
+
+      /* Media Queries */
+      @media (min-width: 768px) {
+        .sidebar {
+          position: static;
+          transform: translateX(0);
+          height: 100vh;
+        }
+
+        .mobile-menu-btn {
+          display: none;
+        }
+
+        .main-content {
+          margin-left: 0;
+          padding: 25px;
+        }
+      }
+
+      @media (max-width: 767px) {
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .main-content {
+          width: 100%;
+          padding: 80px 15px 25px 15px;
+        }
+
+        .page-title {
+          font-size: 24px;
+        }
+
+        .page-subtitle {
+          font-size: 14px;
+        }
+
+        .deposit-container {
+          grid-template-columns: 1fr;
+          gap: 20px;
+          height: auto;
+        }
+
+        .summary-card {
+          position: static;
+          order: -1;
+        }
+
+        .deposit-form-card {
+          padding: 20px;
+        }
+
+        .form-input.amount {
+          font-size: 20px;
+          padding: 16px;
+        }
+
+        .balance-amount {
+          font-size: 24px;
+        }
+
+        .quick-amounts {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .form-actions {
+          flex-direction: column;
+        }
+
+        .btn-secondary {
+          order: 2;
+        }
+
+        .nav-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .nav-item {
+          flex-direction: row;
+          justify-content: flex-start;
+          gap: 15px;
+          padding: 15px 20px;
+        }
+
+        .nav-icon {
+          margin-bottom: 0;
+          font-size: 20px;
+        }
+
+        .nav-label {
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .main-content {
+          padding: 80px 10px 25px 10px;
+        }
+
+        .page-header {
+          margin-bottom: 20px;
+          gap: 10px;
+        }
+
+        .deposit-form-card {
+          padding: 15px;
+        }
+
+        .summary-card {
+          padding: 20px;
+        }
+
+        .quick-amounts {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="app-container">
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar">
+        <div class="profile-section">
+          <div class="menu-icon" onclick="toggleDropdown()">
+            <i class="fas fa-bars"></i>
+          </div>
+          <div>
+            <img
+              src="https://firebasestorage.googleapis.com/v0/b/ctuacaccreditedboardinghouse.appspot.com/o/AlayTrabaho%2Fdefault-profileimg.png?alt=media&token=a150b652-5c6c-46e9-a6ee-895576a83d98"
+              alt="Profile"
+              class="profile-pic"
+            />
+          </div>
+          <div class="username">Name</div>
+          <div class="coins">
+            <span>Contributor</span>
+          </div>
+        </div>
+
+        <div class="navigation-section">
+          <div class="nav-title">User Navigation</div>
+          <div class="nav-grid">
+            <a href="#" class="nav-item">
+              <i class="fas fa-dashboard nav-icon"></i>
+              <span class="nav-label">Dashboard</span>
+            </a> 
+            <a href="#" class="nav-item">
+              <i class="fas fa-user nav-icon"></i>
+              <span class="nav-label">Profile</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <div class="nav-title"></div>
+          <div class="nav-grid">
+            <a href="#" class="nav-item">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+              <span class="nav-label">Logout</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+          <a href="#" class="back-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+          </a>
+          <div class="page-title-section">
+            <h1 class="page-title">Deposit to Savings</h1>
+            <p class="page-subtitle">
+              Add money to your savings account safely and securely
+            </p>
+          </div>
+        </div>
+
+        <!-- Success Message -->
+        <div class="success-message" id="successMessage">
+          <div class="success-header">
+            <i class="fas fa-check-circle success-icon"></i>
+            <span class="success-title">Deposit Successful!</span>
+          </div>
+          <p class="success-text">
+            Your deposit has been processed and will be reflected in your
+            account shortly.
+          </p>
+        </div>
+
+        <!-- Deposit Container -->
+        <div class="deposit-container">
+          <!-- Deposit Form -->
+          <div class="deposit-form-card">
+            <div class="form-header">
+              <h2 class="form-title">Make a Deposit</h2>
+              <p class="form-description">
+                Enter the details for your savings deposit. All transactions are
+                secure and processed immediately.
+              </p>
+            </div>
+
+            <form id="depositForm">
+              <!-- Amount Section -->
+              <div class="form-section">
+                <h3 class="form-section-title">
+                  <i class="fas fa-peso-sign form-section-icon"></i>
+                  Deposit Amount
+                </h3>
+
+                <div class="form-group">
+                  <label class="form-label">Amount to Deposit</label>
+                  <div class="amount-input-wrapper">
+                    <input
+                      type="number"
+                      class="form-input amount"
+                      id="depositAmount"
+                      placeholder="0.00"
+                      min="100"
+                      step="0.01"
+                      required
+                    />
+                  </div>
+                  <div class="quick-amounts">
+                    <button
+                      type="button"
+                      class="quick-amount-btn"
+                      onclick="setAmount(500)"
+                    >
+                      ₱500
+                    </button>
+                    <button
+                      type="button"
+                      class="quick-amount-btn"
+                      onclick="setAmount(1000)"
+                    >
+                      ₱1,000
+                    </button>
+                    <button
+                      type="button"
+                      class="quick-amount-btn"
+                      onclick="setAmount(2000)"
+                    >
+                      ₱2,000
+                    </button>
+                    <button
+                      type="button"
+                      class="quick-amount-btn"
+                      onclick="setAmount(5000)"
+                    >
+                      ₱5,000
+                    </button>
+                    <button
+                      type="button"
+                      class="quick-amount-btn"
+                      onclick="setAmount(10000)"
+                    >
+                      ₱10,000
+                    </button>
+                    <button
+                      type="button"
+                      class="quick-amount-btn"
+                      onclick="setCustomAmount()"
+                    >
+                      Custom
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Method Section -->
+              <div class="form-section">
+                <h3 class="form-section-title">
+                  <i class="fas fa-credit-card form-section-icon"></i>
+                  Payment Method
+                </h3>
+
+                <div class="form-group">
+                  <label class="form-label">Select Payment Method</label>
+                  <select class="form-select" id="paymentMethod" required>
+                    <option value="">Choose payment method</option>
+                    <option value="cash">Cash Deposit</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="online_banking">Online Banking</option>
+                    <option value="mobile_wallet">
+                      Mobile Wallet (GCash/PayMaya)
+                    </option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Reference Number (Optional)</label>
+                  <input
+                    type="text"
+                    class="form-input"
+                    id="referenceNumber"
+                    placeholder="Enter reference or transaction number"
+                  />
+                </div>
+              </div>
+
+              <!-- Additional Details Section -->
+              <div class="form-section">
+                <h3 class="form-section-title">
+                  <i class="fas fa-file-alt form-section-icon"></i>
+                  Additional Details
+                </h3>
+
+                <div class="form-group">
+                  <label class="form-label">Purpose of Deposit</label>
+                  <select class="form-select" id="depositPurpose">
+                    <option value="regular_savings">Regular Savings</option>
+                    <option value="emergency_fund">Emergency Fund</option>
+                    <option value="goal_savings">Goal-based Savings</option>
+                    <option value="investment">Investment</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Notes (Optional)</label>
+                  <textarea
+                    class="form-textarea"
+                    id="depositNotes"
+                    placeholder="Add any additional notes about this deposit..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- Form Actions -->
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-piggy-bank"></i>
+                  Process Deposit
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  onclick="clearForm()"
+                >
+                  <i class="fas fa-undo"></i>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Summary Card -->
+          <div class="summary-card">
+            <div class="summary-header">
+              <h3 class="summary-title">Account Summary</h3>
+              <p class="summary-subtitle">
+                Current balance and transaction details
+              </p>
+            </div>
+
+            <div class="balance-display">
+              <div class="balance-label">Current Balance</div>
+              <div class="balance-amount">₱25,750.00</div>
+              <div class="balance-change">+₱1,200 this month</div>
+            </div>
+
+            <div class="summary-items">
+              <div class="summary-item">
+                <span class="summary-label">Deposit Amount:</span>
+                <span class="summary-value" id="summaryAmount">₱0.00</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">Transaction Fee:</span>
+                <span class="summary-value">₱0.00</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">New Balance:</span>
+                <span class="summary-value" id="summaryNewBalance"
+                  >₱25,750.00</span
+                >
+              </div>
+            </div>
+
+            <div class="info-box">
+              <div class="info-box-header">
+                <i class="fas fa-info-circle info-box-icon"></i>
+                <span class="info-box-title">Deposit Information</span>
+              </div>
+              <p class="info-box-text">
+                • Minimum deposit amount is ₱100<br />
+                • Deposits are processed immediately<br />
+                • No fees for cash deposits<br />
+                • Interest earned daily on your balance
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Sidebar functionality
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.querySelector(".sidebar-overlay");
+
+        sidebar.classList.toggle("open");
+        overlay.classList.toggle("show");
+      }
+
+      function closeSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.querySelector(".sidebar-overlay");
+
+        sidebar.classList.remove("open");
+        overlay.classList.remove("show");
+      }
+
+      function toggleDropdown() {
+        // Dropdown functionality (same as original)
+      }
+
+      // Back button functionality
+      function goBack() {  
+        window.location.href = "{% url 'userDashboard' %}"
+      }
+
+      // Amount setting functionality
+      function setAmount(amount) {
+        const amountInput = document.getElementById("depositAmount");
+        amountInput.value = amount;
+        updateSummary();
+
+        // Update quick amount button states
+        document.querySelectorAll(".quick-amount-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        event.target.classList.add("active");
+      }
+
+      function setCustomAmount() {
+        const amountInput = document.getElementById("depositAmount");
+        amountInput.focus();
+
+        // Update quick amount button states
+        document.querySelectorAll(".quick-amount-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        event.target.classList.add("active");
+      }
+
+      // Update summary when amount changes
+      function updateSummary() {
+        const amount =
+          parseFloat(document.getElementById("depositAmount").value) || 0;
+        // Here you can update any summary UI or perform validation
+        console.log("Current deposit amount:", amount);
+      }
+
+      // Optional: update summary on manual input change
+      document
+        .getElementById("depositAmount")
+        .addEventListener("input", updateSummary);
+    </script>
+  </body>
+</html>

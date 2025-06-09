@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contributor | View Records</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f0f2f5;
+      overflow-x: hidden;
+    }
+    
+    .app-container {
+      width: 100%;
+      min-height: 100vh;
+      background-color: #fff; 
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      display: flex;
+      position: relative;
+    }
+    
+    .sidebar {
+      width: 300px;
+      background-color: #fff;
+      border-right: 1px solid #e9edef;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 1000;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      overflow: hidden;
+    }
+    
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    
+    .sidebar-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
+    
+    .sidebar-overlay.show {
+      display: block;
+    }
+    
+    .profile-section {
+      background-color: #1f5ca7;
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    
+    .menu-icon {
+      align-self: flex-start;
+      margin-bottom: 15px;
+      cursor: pointer;
+      font-size: 20px;
+      padding: 5px;
+    }
+    
+    .mobile-menu-btn {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1001;
+      background-color: #1f5ca7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      width: 45px;
+      height: 45px;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .profile-pic {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 10px;
+      background-color: #ccc;
+    }
+    
+    .username {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    
+    .coins {
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      color: #f1c40f;
+    }
+    
+    .navigation-section {
+      padding: 15px 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .nav-title {
+      font-size: 14px;
+      color: #8a8a8a;
+      margin-bottom: 15px;
+      padding-left: 10px;
+    }
+    
+    .nav-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+    
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f5f7fb;
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      text-decoration: none;
+      color: black;
+    }
+    
+    .nav-item:hover {
+      background-color: #e8edf5;
+    }
+    
+    .nav-item.active {
+      background-color: #1f5ca7;
+      color: white;
+    }
+    
+    .nav-icon {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+    
+    .nav-label {
+      font-size: 12px;
+      text-align: center;
+    }
+    
+    .admin-section {
+      margin-top: auto;
+      padding: 15px 10px;
+      flex-shrink: 0;
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 25px;
+      background-color: #f8f9fa;
+      height: 100vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+     
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 50px;
+      left: 10px;
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      border-radius: 4px;
+      z-index: 100;
+    }
+
+    .dropdown-menu a {
+      display: block;
+      padding: 10px 15px;
+      text-decoration: none;
+      color: #333;
+    }
+
+    .dropdown-menu a:hover {
+      background-color: #f5f5f5;
+    }
+
+    /* Records Page Specific Styles */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .page-title-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .back-btn {
+      background-color: #1f5ca7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+
+    .back-btn:hover {
+      background-color: #1a4e8f;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .page-subtitle {
+      color: #777;
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    /* Filter Section */
+    .filter-section {
+      background-color: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .filter-header {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .filter-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 0;
+    }
+
+    .filter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .filter-label {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .filter-input, .filter-select {
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      background-color: #f8f9fa;
+      transition: border-color 0.3s;
+    }
+
+    .filter-input:focus, .filter-select:focus {
+      outline: none;
+      border-color: #1f5ca7;
+      background-color: white;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .filter-btn.primary {
+      background-color: #1f5ca7;
+      color: white;
+    }
+
+    .filter-btn.primary:hover {
+      background-color: #1a4e8f;
+    }
+
+    .filter-btn.secondary {
+      background-color: #f8f9fa;
+      color: #666;
+      border: 1px solid #ddd;
+    }
+
+    .filter-btn.secondary:hover {
+      background-color: #e9ecef;
+    }
+
+    /* Records Table */
+    .records-section {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      overflow: hidden;
+    }
+
+    .records-header {
+      padding: 20px;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .records-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .records-count {
+      font-size: 14px;
+      color: #777;
+      background-color: #f8f9fa;
+      padding: 5px 12px;
+      border-radius: 15px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .records-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .records-table th {
+      background-color: #f8f9fa;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+      color: #555;
+      font-size: 14px;
+      border-bottom: 1px solid #e9ecef;
+      white-space: nowrap;
+    }
+
+    .records-table td {
+      padding: 15px;
+      border-bottom: 1px solid #f1f3f4;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    .records-table tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .transaction-type {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .transaction-type.deposit {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .transaction-type.withdrawal {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .transaction-type.loan {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .transaction-type.payment {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+
+    .transaction-type.interest {
+      background-color: #e2e3ff;
+      color: #383d41;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-badge.completed {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+
+    .status-badge.rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .amount {
+      font-weight: 600;
+    }
+
+    .amount.positive {
+      color: #28a745;
+    }
+
+    .amount.negative {
+      color: #dc3545;
+    }
+
+    /* Pagination */
+    .pagination-section {
+      padding: 20px;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .pagination-info {
+      font-size: 14px;
+      color: #777;
+    }
+
+    .pagination {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .pagination-btn {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background-color: white;
+      color: #555;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .pagination-btn:hover {
+      background-color: #f8f9fa;
+      border-color: #1f5ca7;
+    }
+
+    .pagination-btn.active {
+      background-color: #1f5ca7;
+      color: white;
+      border-color: #1f5ca7;
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .pagination-btn:disabled:hover {
+      background-color: white;
+      border-color: #ddd;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #777;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #555;
+    }
+
+    .empty-state p {
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* Media Queries */
+    @media (min-width: 768px) {
+      .sidebar {
+        position: static;
+        transform: translateX(0);
+        height: 100vh;
+      }
+      
+      .mobile-menu-btn {
+        display: none;
+      }
+      
+      .main-content {
+        margin-left: 0;
+        padding: 25px;
+      }
+    }
+    
+    @media (max-width: 767px) {
+      .mobile-menu-btn {
+        display: block;
+      }
+      
+      .main-content {
+        width: 100%;
+        padding: 80px 15px 25px 15px;
+        height: 100vh;
+      }
+      
+      .page-title {
+        font-size: 20px;
+      }
+      
+      .filter-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .filter-actions {
+        justify-content: stretch;
+      }
+      
+      .filter-btn {
+        flex: 1;
+      }
+      
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .records-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      
+      .pagination-section {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .pagination {
+        justify-content: center;
+      }
+
+      .nav-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .nav-item {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 15px;
+        padding: 15px 20px;
+      }
+      
+      .nav-icon {
+        margin-bottom: 0;
+        font-size: 20px;
+      }
+      
+      .nav-label {
+        font-size: 14px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .main-content {
+        padding: 80px 10px 25px 10px;
+      }
+      
+      .records-table th,
+      .records-table td {
+        padding: 10px 8px;
+        font-size: 13px;
+      }
+      
+      .filter-section {
+        padding: 15px;
+      }
+      
+      .records-header {
+        padding: 15px;
+      }
+      
+      .pagination-section {
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+  
+  <!-- Sidebar Overlay -->
+  <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+  
+  <div class="app-container">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="profile-section">
+        <div class="menu-icon" onclick="toggleDropdown()">
+          <i class="fas fa-bars"></i>
+        </div>
+        <div id="dropdown-menu" class="dropdown-menu">
+          <a href="#">Logout</a>
+        </div>
+        <div><img src="https://firebasestorage.googleapis.com/v0/b/ctuacaccreditedboardinghouse.appspot.com/o/AlayTrabaho%2Fdefault-profileimg.png?alt=media&token=a150b652-5c6c-46e9-a6ee-895576a83d98" alt="Profile" class="profile-pic"/></div>
+        <div class="username">Name</div>
+        <div class="coins"> 
+          <span>Contributor</span>
+        </div>
+      </div>
+      
+      <div class="navigation-section">
+        <div class="nav-title">User Navigation</div>
+        <div class="nav-grid">
+          <a href="#" class="nav-item" onclick="goToDashboard()">
+            <i class="fas fa-dashboard nav-icon"></i>
+            <span class="nav-label">Dashboard</span>
+          </a> 
+          <a href="#" class="nav-item">
+            <i class="fas fa-user nav-icon"></i>
+            <span class="nav-label">Profile</span>
+          </a>
+        </div>
+      </div>
+      
+      <div class="admin-section">
+        <div class="nav-title"></div>
+        <div class="nav-grid">
+          <a href="#" class="nav-item">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <span class="nav-label">Logout</span>
+          </a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="page-title-section">
+          <button class="back-btn" onclick="goToDashboard()">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+          </button>
+          <div>
+            <div class="page-title">Transaction Records</div>
+            <div class="page-subtitle">View your complete transaction history</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      <div class="filter-section">
+        <div class="filter-header">
+          <h3 class="filter-title">Filter Records</h3>
+        </div>
+        <div class="filter-grid">
+          <div class="filter-group">
+            <label class="filter-label">Transaction Type</label>
+            <select class="filter-select" id="typeFilter">
+              <option value="">All Types</option>
+              <option value="deposit">Deposit</option>
+              <option value="withdrawal">Withdrawal</option>
+              <option value="loan">Loan</option>
+              <option value="payment">Payment</option>
+              <option value="interest">Interest</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Status</label>
+            <select class="filter-select" id="statusFilter">
+              <option value="">All Statuses</option>
+              <option value="completed">Completed</option>
+              <option value="pending">Pending</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">From Date</label>
+            <input type="date" class="filter-input" id="fromDate">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">To Date</label>
+            <input type="date" class="filter-input" id="toDate">
+          </div>
+        </div>
+        <div class="filter-actions">
+          <button class="filter-btn secondary" onclick="clearFilters()">Clear</button>
+          <button class="filter-btn primary" onclick="applyFilters()">Apply Filters</button>
+        </div>
+      </div>
+
+      <!-- Records Section -->
+      <div class="records-section">
+        <div class="records-header">
+          <h3 class="records-title">Recent Transactions</h3>
+          <span class="records-count" id="recordsCount">152 records found</span>
+        </div>
+        
+        <div class="table-container">
+          <table class="records-table" id="recordsTable">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Transaction ID</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody id="recordsTableBody">
+              <!-- Sample data will be inserted here by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-section">
+          <div class="pagination-info" id="paginationInfo">
+            Showing 1-10 of 152 records
+          </div>
+          <div class="pagination" id="pagination">
+            <button class="pagination-btn" onclick="changePage('prev')" id="prevBtn">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+            <button class="pagination-btn active" onclick="changePage(1)">1</button>
+            <button class="pagination-btn" onclick="changePage(2)">2</button>
+            <button class="pagination-btn" onclick="changePage(3)">3</button>
+            <span class="pagination-btn" style="border: none; cursor: default;">...</span>
+            <button class="pagination-btn" onclick="changePage(16)">16</button>
+            <button class="pagination-btn" onclick="changePage('next')" id="nextBtn">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function goToDashboard(){
+        window.location.href="{% url 'userDashboard' %}";
+    }
+    // Sample transaction data
+    const sampleTransactions = [
+      {
+        id: 'TXN-2024-001',
+        date: '2024-01-15 14:30:25',
+        type: 'deposit',
+        description: 'Monthly Contribution Deposit',
+        amount: 5000,
+        status: 'completed',
+        balance: 25000
+      },
+      {
+        id: 'TXN-2024-002', 
+        date: '2024-01-14 09:15:10',
+        type: 'interest',
+        description: 'Monthly Interest Earned',
+        amount: 125,
+        status: 'completed',
+        balance: 20125
+      },
+      {
+        id: 'TXN-2024-003',
+        date: '2024-01-12 16:45:30',
+        type: 'withdrawal',
+        description: 'Emergency Withdrawal Request',
+        amount: -3000,
+        status: 'pending',
+        balance: 20000
+      },
+      {
+        id: 'TXN-2024-004',
+        date: '2024-01-10 11:20:15',
+        type: 'loan',
+        description: 'Personal Loan Application',
+        amount: 15000,
+        status: 'completed',
+        balance: 23000
+      },
+      {
+        id: 'TXN-2024-005',
+        date: '2024-01-08 13:10:45',
+        type: 'payment',
+        description: 'Loan Repayment - Monthly',
+        amount: -850,
+        status: 'completed',
+        balance: 8000
+      },
+      {
+        id: 'TXN-2024-006',
+        date: '2024-01-05 10:30:20',
+        type: 'deposit',
+        description: 'Additional Savings Deposit',
+        amount: 2500,
+        status: 'completed',
+        balance: 8850
+      },
+      {
+        id: 'TXN-2024-007',
+        date: '2024-01-03 15:25:10',
+        type: 'withdrawal',
+        description: 'Partial Withdrawal Request',
+        amount: -1500,
+        status: 'rejected',
+        balance: 6350
+      },
+      {
+        id: 'TXN-2024-008',
+        date: '2024-01-01 12:00:00',
+        type: 'interest',
+        description: 'Year-end Interest Bonus',
+        amount: 350,
+        status: 'completed',
+        balance: 7850
+      }
+    ];
+
+    let currentPage = 1;
+    let recordsPerPage = 10;
+    let filteredTransactions = [...sampleTransactions];
+
+    // Initialize the page
+  function initializePage() {
+    renderTransactions();
+    updatePagination();
+  }
+
+  // Render transactions table
+  function renderTransactions() {
+    const tbody = document.getElementById('recordsTableBody');
+    const startIndex = (currentPage - 1) * recordsPerPage;
+    const endIndex = startIndex + recordsPerPage;
+    const pageTransactions = filteredTransactions.slice(startIndex, endIndex);
+
+    if (pageTransactions.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state">
+            <i class="fas fa-file-alt"></i>
+            <h3>No Records Found</h3>
+            <p>No transactions match your current filters. Try adjusting your search criteria.</p>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = pageTransactions.map(transaction => `
+      <tr>
+        <td>${formatDate(transaction.date)}</td>
+        <td><strong>${transaction.id}</strong></td>
+        <td>
+          <span class="transaction-type ${transaction.type}">
+            ${getTypeIcon(transaction.type)} ${capitalizeFirst(transaction.type)}
+          </span>
+        </td>
+        <td>${transaction.description}</td>
+        <td class="amount ${transaction.amount > 0 ? 'positive' : 'negative'}">
+          ${transaction.amount > 0 ? '+' : ''}₱${Math.abs(transaction.amount).toLocaleString()}
+        </td>
+        <td>
+          <span class="status-badge ${transaction.status}">
+            ${getStatusIcon(transaction.status)} ${capitalizeFirst(transaction.status)}
+          </span>
+        </td>
+        <td><strong>₱${transaction.balance.toLocaleString()}</strong></td>
+      </tr>
+    `).join('');
+  }
+
+  // Update pagination
+  function updatePagination() {
+    const totalRecords = filteredTransactions.length;
+    const totalPages = Math.ceil(totalRecords / recordsPerPage);
+
+    document.getElementById('recordsCount').textContent = `${totalRecords} records found`;
+
+    const startRecord = totalRecords === 0 ? 0 : (currentPage - 1) * recordsPerPage + 1;
+    const endRecord = Math.min(currentPage * recordsPerPage, totalRecords);
+    document.getElementById('paginationInfo').textContent = 
+      `Showing ${startRecord}-${endRecord} of ${totalRecords} records`;
+
+    const pagination = document.getElementById('pagination');
+    let paginationHTML = `
+      <button class="pagination-btn" onclick="changePage('prev')" ${currentPage === 1 ? 'disabled' : ''}>
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    `;
+
+    for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+      paginationHTML += `
+        <button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>
+      `;
+    }
+
+    if (totalPages > 5) {
+      paginationHTML += `<span class="pagination-btn" style="border: none; cursor: default;">...</span>`;
+      paginationHTML += `<button class="pagination-btn" onclick="changePage(${totalPages})">${totalPages}</button>`;
+    }
+
+    paginationHTML += `
+      <button class="pagination-btn" onclick="changePage('next')" ${currentPage === totalPages ? 'disabled' : ''}>
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    `;
+
+    pagination.innerHTML = paginationHTML;
+  }
+
+  // Change page handler
+  function changePage(action) {
+    const totalPages = Math.ceil(filteredTransactions.length / recordsPerPage);
+
+    if (action === 'prev' && currentPage > 1) {
+      currentPage--;
+    } else if (action === 'next' && currentPage < totalPages) {
+      currentPage++;
+    } else if (typeof action === 'number') {
+      currentPage = action;
+    }
+
+    renderTransactions();
+    updatePagination();
+  }
+
+  // Capitalize first letter
+  function capitalizeFirst(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  // Format date
+  function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-PH', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // Get type icon
+  function getTypeIcon(type) {
+    switch (type) {
+      case 'deposit': return '<i class="fas fa-arrow-down"></i>';
+      case 'withdrawal': return '<i class="fas fa-arrow-up"></i>';
+      case 'interest': return '<i class="fas fa-percentage"></i>';
+      case 'loan': return '<i class="fas fa-hand-holding-usd"></i>';
+      case 'payment': return '<i class="fas fa-credit-card"></i>';
+      default: return '<i class="fas fa-exchange-alt"></i>';
+    }
+  }
+
+  // Get status icon
+  function getStatusIcon(status) {
+    switch (status) {
+      case 'completed': return '<i class="fas fa-check-circle"></i>';
+      case 'pending': return '<i class="fas fa-clock"></i>';
+      case 'rejected': return '<i class="fas fa-times-circle"></i>';
+      default: return '<i class="fas fa-question-circle"></i>';
+    }
+  }
+
+  // Call initializer
+  window.onload = initializePage;
+</script>
+</body>
+</html>

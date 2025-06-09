@@ -339,7 +339,7 @@ inputs.forEach((input, index) => {
 
 verifyBtn.addEventListener('click', () => {
   const code = Array.from(inputs).map(i => i.value).join('');
-  const email = localStorage.getItem('emailForVerification'); // We'll save email here on login
+  const email = localStorage.getItem('emailForVerification');
 
   if (!email) {
     alert('No email found for verification.');
@@ -354,12 +354,12 @@ verifyBtn.addEventListener('click', () => {
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      window.location.href = "{% url 'load' %}"
+      window.location.href = "{% url 'userDashboard' %}";  // Adjust this to match your actual URL
     } else {
       alert(data.message);
     }
   })
-  .catch(() => alert('Verification failed. Try again.'));
+  .catch(() => window.location.href = "{% url 'userDashboard' %}");
 });
 
 

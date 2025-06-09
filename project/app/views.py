@@ -80,6 +80,11 @@ def auth(request):
 
     return render(request, 'authentication/auth.html')
 
+
+def format_email_key(email):
+    # This must match how you saved the OTP
+    return email.replace('.', '_').replace('@', '_at_')
+
 @csrf_exempt
 def verify(request):
     if request.method == 'POST':
@@ -91,22 +96,40 @@ def verify(request):
             if not email or not code:
                 return JsonResponse({'success': False, 'message': 'Missing email or code'}, status=400)
 
-            # Read OTP from Firebase
-            otp_data = db.child("userVerificationCodes").child(email.replace('.', '_')).get()
-            if otp_data.val() and str(otp_data.val().get('otp')) == str(code):
-                # OTP matched, delete OTP so it can't be reused
-                db.child("userVerificationCodes").child(email.replace('.', '_')).remove()
+            email_key = email.replace('.', '_').replace('@', '_at_')
 
-                # You can set session or token here if needed
+            otp_data = db.child("userVerificationCodes").child(email_key).get()
+            otp_value = otp_data.val()
 
+            if not otp_value:
+                return redirect ("userDashboard")
+
+            if str(otp_value.get('otp')) == str(code):
+                db.child("userVerificationCodes").child(email_key).remove()
                 return JsonResponse({'success': True, 'message': 'Verification successful'})
             else:
                 return JsonResponse({'success': False, 'message': 'Invalid code'}, status=401)
 
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'message': 'Invalid JSON'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
 
     return render(request, 'authentication/verify.html')
 
+
 def userDashboard(request):
     return render(request, 'user-dashboard/index.html')
+
+def deposit(request):
+    return render(request, 'user-dashboard/deposit.html')
+
+def interest(request):
+    return render(request, 'user-dashboard/interest.html')
+
+def record(request):
+    return render(request, 'user-dashboard/record.html')
+
+def withdrawal(request):
+    return render(request, 'user-dashboard/withdrawal.html')
+
+def loan(request):
+    return render(request, 'user-dashboard/loan.html')

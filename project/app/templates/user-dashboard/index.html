@@ -279,6 +279,21 @@
       opacity: 0.1;
     }
 
+    .quick-action-btn.payment::before {
+      background: linear-gradient(135deg, #49d3d8, #22bdec);
+      opacity: 0.1;
+    }
+
+    .quick-action-btn.interest::before {
+      background: linear-gradient(135deg, #4375e8, #4852d8);
+      opacity: 0.1;
+    }
+
+    .quick-action-btn.records::before {
+      background: linear-gradient(135deg, #d1dd5d, #d3e62b);
+      opacity: 0.1;
+    }
+
     .quick-action-btn:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 25px rgba(0,0,0,0.15);
@@ -315,6 +330,18 @@
 
     .quick-action-btn.loan .quick-action-icon {
       background: linear-gradient(135deg, #f39c12, #e67e22);
+    }
+
+    .quick-action-btn.payment .quick-action-icon {
+      background: linear-gradient(135deg, #49d3d8, #22bdec);
+    }
+
+    .quick-action-btn.interest .quick-action-icon {
+      background: linear-gradient(135deg, #4375e8, #4852d8);
+    }
+
+    .quick-action-btn.records .quick-action-icon {
+      background: linear-gradient(135deg, #d1dd5d, #d3e62b);
     }
 
     .quick-action-content {
@@ -653,11 +680,7 @@
           <a href="#" class="nav-item active">
             <i class="fas fa-dashboard nav-icon"></i>
             <span class="nav-label">Dashboard</span>
-          </a>
-          <a href="#" class="nav-item">
-            <i class="fas fa-users nav-icon"></i>
-            <span class="nav-label">All users</span>
-          </a>
+          </a> 
           <a href="#" class="nav-item">
             <i class="fas fa-user nav-icon"></i>
             <span class="nav-label">Profile</span>
@@ -723,6 +746,45 @@
             <div class="quick-action-content">
               <span class="quick-action-title">Apply for Loan</span>
               <span class="quick-action-desc">Submit loan application</span>
+            </div>
+            <div class="quick-action-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </button>
+
+          <button class="quick-action-btn payment" onclick="handleQuickAction('payment')">
+            <div class="quick-action-icon">
+              <i class="fa-solid fa-money-bill-1"></i>
+            </div>
+            <div class="quick-action-content">
+              <span class="quick-action-title">Make a payment</span>
+              <span class="quick-action-desc">Pay contributions or dues</span>
+            </div>
+            <div class="quick-action-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </button>
+
+          <button class="quick-action-btn interest" onclick="handleQuickAction('interest')">
+            <div class="quick-action-icon">
+              <i class="fa-solid fa-arrow-up"></i>
+            </div>
+            <div class="quick-action-content">
+              <span class="quick-action-title">View Interest</span>
+              <span class="quick-action-desc">Check breakdown of earned interest</span>
+            </div>
+            <div class="quick-action-arrow">
+              <i class="fas fa-arrow-right"></i>
+            </div>
+          </button>
+
+          <button class="quick-action-btn records" onclick="handleQuickAction('records')">
+            <div class="quick-action-icon">
+              <i class="fa-solid fa-book"></i>
+            </div>
+            <div class="quick-action-content">
+              <span class="quick-action-title">View Records</span>
+              <span class="quick-action-desc">See full transaction history</span>
             </div>
             <div class="quick-action-arrow">
               <i class="fas fa-arrow-right"></i>
@@ -825,17 +887,24 @@
       }, 150);
       
       switch(action) {
-        case 'deposit':
-          alert('Redirecting to Deposit to Savings...');
-          // window.location.href = '/deposit';
+        case 'deposit': 
+          window.location.href = "{% url 'deposit' %}";
           break;
-        case 'withdrawal':
-          alert('Redirecting to Request Withdrawal...');
-          // window.location.href = '/withdrawal';
+        case 'withdrawal': 
+          window.location.href = "{% url 'withdrawal' %}";
           break;
-        case 'loan':
-          alert('Redirecting to Apply for Loan...');
+        case 'loan': 
+          window.location.href = "{% url 'loan' %}";
+          break;
+        case 'payment':
+          alert('Redirecting to Payment...');
           // window.location.href = '/loan';
+          break;
+        case 'interest': 
+          window.location.href = "{% url 'interest' %}";
+          break;
+        case 'records':
+          window.location.href = "{% url 'record' %}";
           break;
       }
     }
