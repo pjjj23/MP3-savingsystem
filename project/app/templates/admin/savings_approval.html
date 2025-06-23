@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Success Shared Solution - Savings Approvals</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Sidebar - Same as dashboard */
+      .sidebar {
+        width: 280px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sidebar::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          rgba(102, 126, 234, 0.1),
+          rgba(118, 75, 162, 0.1)
+        );
+        z-index: -1;
+      }
+
+      .sidebar-header {
+        padding: 2rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+      }
+
+      .logo-subtitle {
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+      }
+
+      .nav-menu {
+        padding: 1rem 0;
+      }
+
+      .nav-item {
+        margin: 0.5rem 1rem;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        text-decoration: none;
+        color: #555;
+        transition: all 0.3s ease;
+        position: relative;
+        font-weight: 500;
+      }
+
+      .nav-link:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(102, 126, 234, 0.1),
+          rgba(118, 75, 162, 0.1)
+        );
+        color: #667eea;
+        transform: translateX(5px);
+      }
+
+      .nav-link.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .nav-link i {
+        margin-right: 1rem;
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .page-title {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+      }
+
+      .page-subtitle {
+        color: #666;
+        font-size: 1.1rem;
+      }
+
+      .back-btn {
+        background: rgba(102, 126, 234, 0.1);
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        color: #667eea;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .back-btn:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      }
+
+      /* Stats Summary */
+      .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .summary-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 12px;
+        padding: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .summary-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .summary-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .summary-label {
+        color: #666;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      .waiting {
+        color: #f39c12;
+      }
+      .active {
+        color: #27ae60;
+      }
+      .eligible {
+        color: #3498db;
+      }
+      .total-amount {
+        color: #667eea;
+      }
+
+      /* Table Container */
+      .table-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        overflow-x: auto;
+      }
+
+      .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .table-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .filter-controls {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .filter-select,
+      .search-input {
+        padding: 0.5rem 1rem;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.8);
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      .filter-select:focus,
+      .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      /* Custom Table */
+      .savings-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      .savings-table thead {
+        background: linear-gradient(
+          135deg,
+          rgba(102, 126, 234, 0.1),
+          rgba(118, 75, 162, 0.1)
+        );
+      }
+
+      .savings-table th,
+      .savings-table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      .savings-table th {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .savings-table tbody tr {
+        transition: all 0.3s ease;
+      }
+
+      .savings-table tbody tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+        transform: scale(1.01);
+      }
+
+      .amount-cell {
+        font-weight: 600;
+        color: #667eea;
+        font-size: 1.1rem;
+      }
+
+      .interest-cell {
+        font-weight: 600;
+        color: #27ae60;
+        font-size: 1rem;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-badge.waiting {
+        background: rgba(243, 156, 18, 0.1);
+        color: #f39c12;
+      }
+
+      .status-badge.active {
+        background: rgba(39, 174, 96, 0.1);
+        color: #27ae60;
+      }
+
+      .status-badge.pending {
+        background: rgba(52, 152, 219, 0.1);
+        color: #3498db;
+      }
+
+      .email-cell {
+        font-weight: 500;
+        color: #333;
+      }
+
+      .date-cell {
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      /* Action Buttons */
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+
+      .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .btn-activate {
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        color: white;
+      }
+
+      .btn-activate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+      }
+
+      .btn-activate:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .status-text {
+        color: #666;
+        font-size: 0.85rem;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+
+      .status-text.not-eligible {
+        color: #e74c3c;
+      }
+
+      .status-text.already-active {
+        color: #27ae60;
+      }
+
+      .status-text.too-recent {
+        color: #f39c12;
+      }
+
+      /* Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-content {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        margin: 5% auto;
+        padding: 2rem;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: modalSlideIn 0.3s ease;
+      }
+
+      @keyframes modalSlideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .modal-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+      }
+
+      .close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #666;
+        transition: color 0.3s ease;
+      }
+
+      .close:hover {
+        color: #333;
+      }
+
+      .modal-body p {
+        margin-bottom: 1rem;
+        color: #666;
+        line-height: 1.6;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2rem;
+      }
+
+      /* Empty State */
+      .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+      }
+
+      .empty-state i {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+        color: #ddd;
+      }
+
+      .empty-state h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+        color: #333;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 1024px) {
+        .table-container {
+          overflow-x: auto;
+        }
+
+        .savings-table {
+          min-width: 800px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          left: -280px;
+          z-index: 1000;
+          height: 100vh;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .main-content {
+          padding: 1rem;
+        }
+
+        .header-top {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: flex-start;
+        }
+
+        .stats-summary {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .filter-controls {
+          flex-direction: column;
+          width: 100%;
+        }
+
+        .filter-select,
+        .search-input {
+          width: 100%;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+        }
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .table-container,
+      .summary-card {
+        animation: fadeInUp 0.6s ease forwards;
+      }
+
+      .summary-card:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .summary-card:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+      .summary-card:nth-child(4) {
+        animation-delay: 0.3s;
+      }
+
+      /* Success notification */
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transform: translateX(400px);
+        transition: all 0.3s ease;
+        z-index: 2000;
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification.error {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">Success Shared</div>
+          <div class="logo-subtitle">Solution</div>
+        </div>
+
+        <nav class="nav-menu">
+          <div class="nav-item">
+            <a href="#" class="nav-link" data-page="dashboard">
+              <i class="fas fa-tachometer-alt"></i>
+              Dashboard
+            </a>
+          </div>
+          <div class="nav-item">
+            <a href="#" class="nav-link active" data-page="admin_savings_view">
+              <i class="fas fa-piggy-bank"></i>
+              Saving Approvals
+            </a>
+          </div>
+          <div class="nav-item">
+            <a href="#" class="nav-link" data-page="loan_approvals">
+              <i class="fas fa-hand-holding-usd"></i>
+              Loan Approvals
+            </a>
+          </div>
+          <div class="nav-item">
+            <a href="{% url 'reports' %}" class="nav-link" data-page="reports">
+              <i class="fas fa-chart-bar"></i>
+              Reports & Analytics
+            </a>
+          </div>
+          <div class="nav-item">
+            <a href="#" class="nav-link" data-page="logout">
+              <i class="fas fa-sign-out-alt"></i>
+              Logout
+            </a>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+          <div class="header-top">
+            <div>
+              <h1 class="page-title">Savings Approvals</h1>
+              <p class="page-subtitle">
+                Manage savings accounts and activate interest earnings
+              </p>
+            </div>
+            <a href="{% url 'admin_dashboard' %}" class="back-btn" onclick="goBack()">
+              <i class="fas fa-arrow-left"></i>
+              Back to Dashboard
+            </a>
+          </div>
+        </div>
+
+        <!-- Stats Summary -->
+        <div class="stats-summary">
+          <div class="summary-card">
+            <div class="summary-number waiting" id="waitingCount">0</div>
+            <div class="summary-label">Waiting for Activation</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-number active" id="activeCount">0</div>
+            <div class="summary-label">Active Savings</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-number eligible" id="eligibleCount">0</div>
+            <div class="summary-label">Eligible for Activation</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-number total-amount" id="totalAmount">₱0</div>
+            <div class="summary-label">Total Savings Amount</div>
+          </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container">
+          <div class="table-header">
+            <h2 class="table-title">
+              <i class="fas fa-piggy-bank"></i>
+              Savings Accounts
+            </h2>
+            <div class="filter-controls">
+              <select class="filter-select" id="statusFilter">
+                <option value="">All Status</option>
+                <option value="waiting">Waiting</option>
+                <option value="active">Active</option>
+              </select>
+              <input
+                type="text"
+                class="search-input"
+                placeholder="Search by email..."
+                id="searchInput"
+              />
+            </div>
+          </div>
+
+          <table class="savings-table" id="savingsTable">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Amount</th>
+                <th>Interest</th>
+                <th>Date Saved</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="savingsTableBody">
+    {% for saving in savings %}
+    <tr data-status="{{ saving.status|lower }}" data-eligible="{{ saving.eligible|yesno:'true,false' }}">
+      <td class="email-cell">{{ saving.email }}</td>
+      <td class="amount-cell">₱{{ saving.amount|floatformat:2 }}</td>
+      <td class="interest-cell">₱{{ saving.interest_shown|floatformat:2 }}</td>
+      <td class="date-cell">{{ saving.date_saved }}</td>
+      <td>
+        <span class="status-badge {{ saving.status|lower }}">{{ saving.status|capfirst }}</span>
+      </td>
+      <td>
+        {% if saving.eligible %}
+          <button class="btn btn-activate" onclick="activateInterest('{{ saving.id }}', '{{ saving.email }}')">
+            <i class="fas fa-play"></i> Activate
+          </button>
+        {% else %}
+          {% if saving.status != 'waiting' %}
+            <span class="status-text already-active">
+              <i class="fas fa-check-circle"></i> Already active
+            </span>
+          {% elif saving.date_saved %}
+            <span class="status-text too-recent">
+              <i class="fas fa-clock"></i> Less than 2 months old
+            </span>
+          {% else %}
+            <span class="status-text not-eligible">Not eligible</span>
+          {% endif %}
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+          </table>
+
+          <!-- Empty State (shown when no data matches filters) -->
+          <div class="empty-state" id="emptyState" style="display: none;">
+            <i class="fas fa-search"></i>
+            <h3>No savings found</h3>
+            <p>Try adjusting your search or filter criteria</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">Confirm Interest Activation</h3>
+          <button class="close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p id="modalMessage">Are you sure you want to activate interest for this savings account?</p>
+          <div style="background: rgba(102, 126, 234, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+            <strong>Account Details:</strong><br>
+            <span id="modalEmail"></span><br>
+            <span id="modalAmount"></span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button
+            class="btn"
+            onclick="closeModal()"
+            style="background: #95a5a6; color: white"
+          >
+            Cancel
+          </button>
+          <button class="btn btn-activate" id="confirmBtn" onclick="confirmActivation()">
+            <i class="fas fa-play"></i>
+            Activate Interest
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success/Error Notification -->
+    <div id="notification" class="notification">
+      <span id="notificationText"></span>
+    </div>
+
+    <script>
+  let currentSavingId = null;
+  let currentEmail = null;
+
+  // Initialize dashboard
+  document.addEventListener("DOMContentLoaded", function () {
+    updateStats();
+    setupEventListeners();
+  });
+
+  function setupEventListeners() {
+    // Navigation functionality
+    const navLinks = document.querySelectorAll(".nav-link");
+    navLinks.forEach((link) => {
+      link.addEventListener("click", function (e) {
+        e.preventDefault();
+        navLinks.forEach((l) => l.classList.remove("active"));
+        this.classList.add("active");
+        const page = this.getAttribute("data-page");
+        handleNavigation(page);
+      });
+    });
+
+    // Search and filter functionality
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    searchInput.addEventListener("input", filterTable);
+    statusFilter.addEventListener("change", filterTable);
+  }
+
+  function handleNavigation(page) {
+    switch (page) {
+      case "dashboard":
+        showNotification("Returning to Dashboard...", "success");
+        window.location.href = "{% url 'admin_dashboard' %}"; 
+        break;
+      case "loan_approvals":
+        showNotification("Navigating to Loan Approvals...", "success");
+        window.location.href = "{% url 'loan_approvals' %}"; 
+        break;
+      case "reports":
+        showNotification("Navigating to Reports...", "success");
+        window.location.href = "{% url 'reports' %}"; 
+        break;
+      case "logout":
+        if (confirm("Are you sure you want to logout?")) {
+          showNotification("Logging out...", "success");
+          window.location.href = "{% url 'admin_logout' %}";  
+        }
+        break;
+    }
+  }
+
+  // Update dashboard statistics
+  function updateStats() {
+    const rows = document.querySelectorAll("#savingsTable tbody tr");
+    let waitingCount = 0;
+    let activeCount = 0;
+    let eligibleCount = 0;
+    let totalAmount = 0;
+
+    rows.forEach(row => {
+      const status = row.getAttribute("data-status");
+      const eligible = row.getAttribute("data-eligible") === "true";
+      const amountText = row.querySelector(".amount-cell").textContent;
+      const amount = parseFloat(amountText.replace(/[₱,]/g, ""));
+
+      if (status === "waiting") waitingCount++;
+      if (status === "active") activeCount++;
+      if (eligible) eligibleCount++;
+      totalAmount += amount;
+    });
+
+    document.getElementById("waitingCount").textContent = waitingCount;
+    document.getElementById("activeCount").textContent = activeCount;
+    document.getElementById("eligibleCount").textContent = eligibleCount;
+    document.getElementById("totalAmount").textContent = `₱${totalAmount.toLocaleString()}`;
+  }
+
+  // Filter table functionality
+  function filterTable() {
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const status = document.getElementById("statusFilter").value;
+    const rows = document.querySelectorAll("#savingsTable tbody tr");
+    let visibleRows = 0;
+
+    rows.forEach((row) => {
+      const email = row.querySelector(".email-cell").textContent.toLowerCase();
+      const rowStatus = row.getAttribute("data-status");
+
+      const matchesSearch = email.includes(search);
+      const matchesStatus = status === "" || rowStatus === status;
+
+      if (matchesSearch && matchesStatus) {
+        row.style.display = "";
+        visibleRows++;
+      } else {
+        row.style.display = "none";
+      }
+    });
+
+    document.getElementById("emptyState").style.display = visibleRows === 0 ? "block" : "none";
+  }
+
+  // CSRF token for secure POST
+  function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      const [name, value] = cookie.trim().split('=');
+      if (name === 'csrftoken') return decodeURIComponent(value);
+    }
+    return '';
+  }
+
+  // Show toast/notification
+  function showNotification(message, type = "info") {
+    const notif = document.getElementById("notification");
+    const text = document.getElementById("notificationText");
+    text.textContent = message;
+    notif.className = `notification ${type}`;
+    notif.style.display = "block";
+
+    setTimeout(() => {
+      notif.style.display = "none";
+    }, 3000);
+  }
+
+  // Activate interest via modal
+  function activateInterest(id, email) {
+    if (!confirm(`Are you sure you want to activate interest for ${email}?`)) return;
+
+    fetch(`/admin-dashboard/activate_interest/${id}/`, {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCSRFToken(),
+      },
+    })
+    .then((res) => res.json())
+    .then((data) => {
+      showNotification(data.message, "success");
+      setTimeout(() => location.reload(), 1000);
+    })
+    .catch((err) => {
+      console.error(err);
+      showNotification("Something went wrong", "error");
+    });
+  }
+</script>
+</body>
+</html>

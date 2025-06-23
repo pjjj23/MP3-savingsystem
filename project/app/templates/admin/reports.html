@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports & Analytics - Success Shared Solution</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 280px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sidebar::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          45deg,
+          rgba(102, 126, 234, 0.1),
+          rgba(118, 75, 162, 0.1)
+        );
+        z-index: -1;
+      }
+
+      .sidebar-header {
+        padding: 2rem 1.5rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+      }
+
+      .logo-subtitle {
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: 500;
+      }
+
+      .nav-menu {
+        padding: 1rem 0;
+      }
+
+      .nav-item {
+        margin: 0.5rem 1rem;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .nav-link {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        text-decoration: none;
+        color: #555;
+        transition: all 0.3s ease;
+        position: relative;
+        font-weight: 500;
+      }
+
+      .nav-link:hover {
+        background: linear-gradient(
+          135deg,
+          rgba(102, 126, 234, 0.1),
+          rgba(118, 75, 162, 0.1)
+        );
+        color: #667eea;
+        transform: translateX(5px);
+      }
+
+      .nav-link.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+      }
+
+      .nav-link i {
+        margin-right: 1rem;
+        font-size: 1.1rem;
+        width: 20px;
+        text-align: center;
+      }
+
+      /* Main Content */
+      .main-content {
+        flex: 1;
+        padding: 2rem;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        overflow-y: auto;
+      }
+
+      .header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .welcome-text h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+      }
+
+      .welcome-text p {
+        color: #666;
+        font-size: 1.1rem;
+      }
+
+      /* Filter Section */
+      .filter-section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .filter-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .filter-group label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+      }
+
+      .filter-input {
+        padding: 0.75rem;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .filter-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .filter-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-secondary {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+      }
+
+      .btn-secondary:hover {
+        background: rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+      }
+
+      /* Analytics Cards */
+      .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .analytics-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .analytics-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+      }
+
+      .card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .chart-container {
+        height: 250px;
+        position: relative;
+      }
+
+      /* Data Table Section */
+      .data-section {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .data-table th {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .data-table td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .data-table tr:hover {
+        background: rgba(102, 126, 234, 0.05);
+      }
+
+      .data-table tr:last-child td {
+        border-bottom: none;
+      }
+
+      .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .status-approved {
+        background: rgba(39, 174, 96, 0.1);
+        color: #27ae60;
+      }
+
+      .status-pending {
+        background: rgba(241, 196, 15, 0.1);
+        color: #f1c40f;
+      }
+
+      .status-rejected {
+        background: rgba(231, 76, 60, 0.1);
+        color: #e74c3c;
+      }
+
+      .amount {
+        font-weight: 700;
+        color: #27ae60;
+      }
+
+      /* Pagination */
+      .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+      }
+
+      .pagination button {
+        padding: 0.5rem 1rem;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        background: white;
+        color: #667eea;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .pagination button:hover:not(:disabled) {
+        background: #667eea;
+        color: white;
+      }
+
+      .pagination button.active {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-color: transparent;
+      }
+
+      .pagination button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .sidebar {
+          position: fixed;
+          left: -280px;
+          z-index: 1000;
+          height: 100vh;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .main-content {
+          padding: 1rem;
+        }
+
+        .header-top {
+          flex-direction: column;
+          gap: 1rem;
+          align-items: flex-start;
+        }
+
+        .filter-actions {
+          justify-content: center;
+        }
+
+        .data-table {
+          font-size: 0.9rem;
+        }
+
+        .data-table th,
+        .data-table td {
+          padding: 0.75rem 0.5rem;
+        }
+      }
+
+      /* Loading Animation */
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Fade In Animation */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .data-section,
+      .analytics-card,
+      .filter-section {
+        animation: fadeInUp 0.6s ease forwards;
+      }
+
+      .analytics-card:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+      .analytics-card:nth-child(3) {
+        animation-delay: 0.2s;
+      }
+
+      @media print {
+        .data-table,
+        .data-table * {
+          opacity: 1 !important;
+          color: #000 !important;
+          background: #fff !important;
+          box-shadow: none !important;
+          filter: none !important;
+        }
+
+        .data-section {
+          background: #fff !important;
+          opacity: 1 !important;
+        }
+
+        .status-badge {
+          background: #e0e0e0 !important;
+          color: #000 !important;
+        }
+
+        .amount {
+          color: #000 !important;
+        }
+
+        body {
+          background: white !important;
+        }
+      }
+
+      .pdf-export-mode *,
+      .pdf-export-mode {
+        opacity: 1 !important;
+        filter: none !important;
+        -webkit-filter: none !important;
+        background: white !important;
+        box-shadow: none !important;
+        color: #000 !important;
+      }
+
+      .pdf-export-mode input,
+      .pdf-export-mode select {
+        background-color: white !important;
+        color: #000 !important;
+        border: 1px solid #ccc !important;
+      }
+
+      .pdf-export-mode .filter-section {
+        background: white !important;
+        backdrop-filter: none !important;
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard-container">
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">Success Shared</div>
+          <div class="logo-subtitle">Solution</div>
+        </div>
+
+        <nav class="nav-menu">
+          <div class="nav-item">
+            <a href="{% url 'admin_dashboard' %}" class="nav-link" data-page="dashboard">
+              <i class="fas fa-tachometer-alt"></i>
+              Dashboard
+            </a>
+          </div>
+          <div class="nav-item">
+            <a href="{% url 'admin_savings' %}" class="nav-link" data-page="admin_savings">
+              <i class="fas fa-piggy-bank"></i>
+              Saving Approvals
+            </a>
+          </div>
+          <div class="nav-item">
+            <a href="{% url 'loan_approvals' %}" class="nav-link" data-page="loan_approvals">
+              <i class="fas fa-hand-holding-usd"></i>
+              Loan Approvals
+            </a>
+          </div>
+          <div class="nav-item">
+            <a href="{% url 'reports' %}" class="nav-link active" data-page="reports">
+              <i class="fas fa-chart-bar"></i>
+              Reports & Analytics
+            </a>
+          </div>
+          <div class="nav-item">
+            <a href="{% url 'admin_logout' %}" class="nav-link" data-page="logout">
+              <i class="fas fa-sign-out-alt"></i>
+              Logout
+            </a>
+          </div>
+        </nav>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Header -->
+        <div class="header">
+          <div class="header-top">
+            <div class="welcome-text">
+              <h1>Reports & Analytics</h1>
+              <p>Comprehensive financial reports and data insights</p>
+            </div>
+            <div class="header-actions">
+              <p id="currentDate"></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <h3 class="section-title">
+            <i class="fas fa-filter"></i>
+            Filter Reports
+          </h3>
+          <div class="filter-grid">
+            <div class="filter-group">
+              <label for="dateFrom">From Date</label>
+              <input type="date" id="dateFrom" class="filter-input" />
+            </div>
+            <div class="filter-group">
+              <label for="dateTo">To Date</label>
+              <input type="date" id="dateTo" class="filter-input" />
+            </div>
+            <div class="filter-group">
+              <label for="reportType">Report Type</label>
+              <select id="reportType" class="filter-input">
+                <option value="all">All</option>
+                <option value="loans">Loans</option>
+                <option value="savings">Savings</option>
+                <option value="withdrawals">Withdrawals</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="status">Status</label>
+              <select id="status" class="filter-input">
+                <option value="all">All</option>
+                <option value="approved">Approved</option>
+                <option value="pending">Pending</option>
+                <option value="rejected">Rejected</option>
+                <option value="active">Active</option>
+                <option value="ready">Ready</option>
+              </select>
+            </div>
+          </div>
+          <div class="filter-actions">
+            <button class="btn-secondary" onclick="clearFilters()">
+              <i class="fas fa-undo"></i> Clear
+            </button>
+            <button class="btn-primary" onclick="applyFilters()">
+              <i class="fas fa-search"></i> Apply
+            </button>
+            <button class="btn-primary" onclick="generatePDF()">
+              <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Interest Rates Table -->
+        <div class="data-section">
+          <div class="section-header">
+            <h3 class="section-title">
+              <i class="fas fa-percentage"></i>
+              Interest Rates & Terms
+            </h3>
+          </div>
+          <div style="overflow-x: auto">
+            <table class="data-table" id="interestTable">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Amount</th>
+                  <th>Interest</th>
+                  <th>Date Saved</th>
+                  <th>Status</th>
+                  <th>Reference</th>
+                  <th>Purpose</th>
+                  <th>Payment Method</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for saving in savings %}
+                <tr>
+                  <td>{{ saving.user_id }}</td>
+                  <td>₱{{ saving.amount|floatformat:2 }}</td>
+                  <td>₱{{ saving.interest|floatformat:2 }}</td>
+                  <td>{{ saving.date_saved }}</td>
+                  <td>{{ saving.status|title }}</td>
+                  <td>{{ saving.reference }}</td>
+                  <td>{{ saving.purpose|title }}</td>
+                  <td>{{ saving.payment_method|title }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="8" style="text-align: center">
+                    No savings data found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Withdrawals Table -->
+        <div class="data-section">
+          <div class="section-header">
+            <h3 class="section-title">
+              <i class="fas fa-money-bill-wave"></i>
+              Recent Withdrawals
+            </h3>
+          </div>
+          <div style="overflow-x: auto">
+            <table class="data-table" id="withdrawalsTable">
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Amount</th>
+                  <th>Date Requested</th>
+                  <th>Method</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for withdrawal in withdrawals %}
+                <tr>
+                  <td>{{ withdrawal.user_id }}</td>
+                  <td>₱{{ withdrawal.amount|floatformat:2 }}</td>
+                  <td>{{ withdrawal.date_requested }}</td>
+                  <td>{{ withdrawal.method|title }}</td>
+                  <td>{{ withdrawal.reason|title }}</td>
+                  <td>{{ withdrawal.status|title }}</td>
+                  <td>{{ withdrawal.description|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="7" style="text-align: center">
+                    No withdrawals found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Loan Applications Table -->
+        <div class="data-section">
+          <div class="section-header">
+            <h3 class="section-title">
+              <i class="fas fa-hand-holding-usd"></i>
+              Loan Applications
+            </h3>
+          </div>
+          <div style="overflow-x: auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>Phone</th>
+                  <th>Loan Type</th>
+                  <th>Amount</th>
+                  <th>Term (Months)</th>
+                  <th>Status</th>
+                  <th>Date Applied</th>
+                  <th>Date Reviewed</th>
+                  <th>Purpose</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for loan in loan_applications %}
+                <tr>
+                  <td>{{ loan.full_name }}</td>
+                  <td>{{ loan.user_id }}</td>
+                  <td>{{ loan.phone }}</td>
+                  <td>{{ loan.loan_type|capfirst }}</td>
+                  <td>₱{{ loan.amount|floatformat:2 }}</td>
+                  <td>{{ loan.term_months }}</td>
+                  <td>
+                    <span class="status-badge status-{{ loan.status|lower }}">
+                      {{ loan.status|capfirst }}
+                    </span>
+                  </td>
+                  <td>{{ loan.date_applied }}</td>
+                  <td>{{ loan.date_reviewed|default:"—" }}</td>
+                  <td>{{ loan.purpose|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="10" style="text-align: center">
+                    No loan applications found.
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script>
+      window.savingsData = {{ savings|safe }};
+      window.loanData = {{ loan_applications|safe }};
+      window.withdrawalData = {{ withdrawals|safe }};
+    </script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        setDateDefaults();
+        applyFilters(); // initial load
+      });
+
+      function setDateDefaults() {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        document.getElementById("dateFrom").value = firstDay
+          .toISOString()
+          .split("T")[0];
+        document.getElementById("dateTo").value = today
+          .toISOString()
+          .split("T")[0];
+      }
+
+      function clearFilters() {
+        document.getElementById("reportType").value = "all";
+        document.getElementById("status").value = "all";
+        setDateDefaults();
+        applyFilters();
+      }
+
+      function applyFilters() {
+        const type = document.getElementById("reportType").value;
+        const status = document.getElementById("status").value;
+        const from = new Date(document.getElementById("dateFrom").value);
+        const to = new Date(document.getElementById("dateTo").value);
+
+        const sections = [
+          "transactionsTableBody",
+          "interestTableBody",
+          "summaryTableBody",
+        ];
+        sections.forEach(
+          (id) =>
+            (document.getElementById(
+              id
+            ).parentElement.parentElement.parentElement.style.display = "none")
+        );
+
+        if (type === "loans" || type === "all") {
+          filterTable(
+            "summaryTableBody",
+            window.loanData || [],
+            status,
+            from,
+            to
+          );
+          showSection("summaryTableBody");
+        }
+
+        if (type === "savings" || type === "all") {
+          filterTable(
+            "interestTableBody",
+            window.savingsData || [],
+            status,
+            from,
+            to
+          );
+          showSection("interestTableBody");
+        }
+
+        if (type === "withdrawals" || type === "all") {
+          filterTable(
+            "transactionsTableBody",
+            window.withdrawalData || [],
+            status,
+            from,
+            to
+          );
+          showSection("transactionsTableBody");
+        }
+      }
+
+      function filterTable(tableId, data, status, from, to) {
+        const tbody = document.getElementById(tableId);
+        tbody.innerHTML = "";
+
+        const filtered = data.filter((row) => {
+          const date = new Date(
+            row.date || row.date_saved || row.date_applied || row.date_requested
+          );
+          const inDateRange = date >= from && date <= to;
+          const matchStatus =
+            status === "all" ||
+            (row.status && row.status.toLowerCase() === status);
+          return inDateRange && matchStatus;
+        });
+
+        filtered.forEach((row) => {
+          const tr = document.createElement("tr");
+          Object.values(row)
+            .slice(0, 7)
+            .forEach((val) => {
+              const td = document.createElement("td");
+              td.textContent = val;
+              tr.appendChild(td);
+            });
+          tbody.appendChild(tr);
+        });
+      }
+
+      function showSection(tbodyId) {
+        document.getElementById(
+          tbodyId
+        ).parentElement.parentElement.parentElement.style.display = "block";
+      }
+
+      function generatePDF() {
+        const mainContent = document.querySelector(".main-content");
+
+        // Add export mode styles
+        mainContent.classList.add("pdf-export-mode");
+
+        const opt = {
+          margin: 0.2,
+          filename: `Report-${new Date().toISOString().split("T")[0]}.pdf`,
+          image: { type: "jpeg", quality: 1 },
+          html2canvas: { scale: 3, useCORS: true },
+          jsPDF: { unit: "in", format: "a4", orientation: "portrait" },
+        };
+
+        html2pdf()
+          .set(opt)
+          .from(mainContent)
+          .save()
+          .then(() => {
+            // Clean up
+            mainContent.classList.remove("pdf-export-mode");
+          });
+      }
+    </script>
+  </body>
+</html>

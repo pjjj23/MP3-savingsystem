@@ -3,14 +3,13 @@ from firebase_admin import credentials, initialize_app
 
 # Pyrebase Configuration
 firebaseConfig = {
-    "apiKey": "AIzaSyAfCuib-Q7FmAlr9oj9CIwBONeMkWnpdgU",
-    "authDomain": "ctuacaccreditedboardinghouse.firebaseapp.com",
-    "databaseURL": "https://ctuacaccreditedboardinghouse-default-rtdb.firebaseio.com",
-    "projectId": "ctuacaccreditedboardinghouse",
-    "storageBucket": "ctuacaccreditedboardinghouse.appspot.com",
-    "messagingSenderId": "930916912489",
-    "appId": "1:930916912489:web:58f4a20a4ca620471c81f8",
-    "measurementId": "G-2KK40DYS31"
+    "apiKey": "AIzaSyCw6LRis1ynw32B9SwpsMi6C2mArsp88bU",
+    "authDomain": "mp3bank-25551.firebaseapp.com",
+    "databaseURL": "https://mp3bank-25551-default-rtdb.firebaseio.com",
+    "projectId": "mp3bank-25551",
+    "storageBucket": "mp3bank-25551.firebasestorage.app",
+    "messagingSenderId": "361940396433",
+    "appId": "1:361940396433:web:d2c9b1ff6a759190bd5230", 
 }
 
 # Initialize Pyrebase

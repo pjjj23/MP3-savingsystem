@@ -273,6 +273,10 @@
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 56px;
       }
 
       .submit-btn::before {
@@ -295,9 +299,39 @@
         left: 100%;
       }
 
-      .submit-btn:hover {
+      .submit-btn:hover:not(:disabled) {
         transform: translateY(-2px);
         box-shadow: 0 8px 25px rgba(42, 82, 152, 0.4);
+      }
+
+      .submit-btn:disabled {
+        background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .submit-btn:disabled::before {
+        display: none;
+      }
+
+      .loading-spinner {
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top: 2px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+
+      .btn-text {
+        transition: opacity 0.3s ease;
       }
 
       .forgot-password {
@@ -388,7 +422,7 @@
               <rect x="17" y="12" width="2" height="2" />
             </svg>
           </div>
-          MP3SavingBank
+          Success Shared Solution
         </div>
         <div class="tagline">Your trusted partner in digital banking</div>
         <ul class="features">
@@ -396,7 +430,6 @@
           <li>24/7 customer support</li>
           <li>Mobile banking made easy</li>
           <li>Real-time transaction alerts</li>
-          <li>Multi-factor authentication</li>
         </ul>
       </div>
 
@@ -442,7 +475,9 @@
               <label for="rememberMe">Remember me</label>
             </div>
 
-            <button type="submit" class="submit-btn">Sign In</button>
+            <button type="submit" class="submit-btn" id="loginBtn">
+              <span class="btn-text">Sign In</span>
+            </button>
 
             <div class="forgot-password">
               <a href="#" onclick="showForgotPassword()"
@@ -517,7 +552,9 @@
               >
             </div>
 
-            <button type="submit" class="submit-btn">Create Account</button>
+            <button type="submit" class="submit-btn" id="registerBtn">
+              <span class="btn-text">Create Account</span>
+            </button>
 
             <div class="security-info">
               Your personal information is protected with 256-bit SSL encryption
@@ -538,6 +575,10 @@
 
         toggleBtns[0].classList.add("active");
         toggleBtns[1].classList.remove("active");
+
+        // Reset button states when switching forms
+        resetButtonState('loginBtn', 'Sign In');
+        resetButtonState('registerBtn', 'Create Account');
       }
 
       function showRegister() {
@@ -550,6 +591,10 @@
 
         toggleBtns[0].classList.remove("active");
         toggleBtns[1].classList.add("active");
+
+        // Reset button states when switching forms
+        resetButtonState('loginBtn', 'Sign In');
+        resetButtonState('registerBtn', 'Create Account');
       }
 
       function togglePassword(inputId) {
@@ -572,6 +617,24 @@
         );
       }
 
+      function setButtonLoading(buttonId, loadingText) {
+        const button = document.getElementById(buttonId);
+        const btnText = button.querySelector('.btn-text');
+        
+        button.disabled = true;
+        button.innerHTML = `
+          <div class="loading-spinner"></div>
+          <span class="btn-text">${loadingText}</span>
+        `;
+      }
+
+      function resetButtonState(buttonId, originalText) {
+        const button = document.getElementById(buttonId);
+        
+        button.disabled = false;
+        button.innerHTML = `<span class="btn-text">${originalText}</span>`;
+      }
+
       // Add smooth animations when switching forms
       document.addEventListener("DOMContentLoaded", function () {
         const loginForm = document.getElementById("loginForm");
@@ -580,6 +643,9 @@
         // Handle Login
         loginForm.addEventListener("submit", function (e) {
           e.preventDefault();
+
+          // Set loading state
+          setButtonLoading('loginBtn', 'Please wait...');
 
           const email = document.getElementById("loginEmail").value.trim();
           const password = document.getElementById("loginPassword").value;
@@ -600,21 +666,32 @@
             .then((data) => {
               alert(data.message);
               if (data.success) {
+                // Keep loading state for successful login
+                setButtonLoading('loginBtn', 'Redirecting...');
+                
                 // Save email for OTP verification page
                 localStorage.setItem("emailForVerification", email);
 
                 // Redirect to the verify page
                 window.location.href = "{% url 'verify' %}";
+              } else {
+                // Reset button state on error
+                resetButtonState('loginBtn', 'Sign In');
               }
             })
             .catch((error) => {
               console.error("Login error:", error);
+              // Reset button state on error
+              resetButtonState('loginBtn', 'Sign In');
             });
         });
 
         // Handle Registration
         registerForm.addEventListener("submit", function (e) {
           e.preventDefault();
+
+          // Set loading state
+          setButtonLoading('registerBtn', 'Please wait...');
 
           const firstName = document.getElementById("firstName").value.trim();
           const lastName = document.getElementById("lastName").value.trim();
@@ -625,6 +702,7 @@
 
           if (password !== confirmPassword) {
             alert("Passwords do not match!");
+            resetButtonState('registerBtn', 'Create Account');
             return;
           }
 
@@ -645,9 +723,23 @@
             .then((response) => response.json())
             .then((data) => {
               alert(data.message);
+              if (data.success) {
+                // Keep loading state for successful registration
+                setButtonLoading('registerBtn', 'Account created!');
+                
+                // Optional: Switch to login form after successful registration
+                setTimeout(() => {
+                  showLogin();
+                }, 2000);
+              } else {
+                // Reset button state on error
+                resetButtonState('registerBtn', 'Create Account');
+              }
             })
             .catch((error) => {
               console.error("Registration error:", error);
+              // Reset button state on error
+              resetButtonState('registerBtn', 'Create Account');
             });
         });
 

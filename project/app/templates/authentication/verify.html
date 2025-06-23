@@ -117,14 +117,19 @@
             margin-bottom: 24px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            position: relative;
         }
 
-        .verify-btn:hover {
+        .verify-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
         }
 
-        .verify-btn:active {
+        .verify-btn:active:not(:disabled) {
             transform: translateY(0);
         }
 
@@ -133,6 +138,27 @@
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
+        }
+
+        .verify-btn.loading {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .resend-section {
@@ -195,33 +221,37 @@
         </p>
         
         <div class="code-inputs">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-        <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
-    </div>
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+            <input type="text" class="code-input" maxlength="1" pattern="[0-9]" inputmode="numeric">
+        </div>
 
-    <button class="verify-btn" id="verifyBtn" disabled>Verify Code</button>
+        <button class="verify-btn" id="verifyBtn" disabled>
+            <span id="buttonText">Verify Code</span>
+        </button>
 
-    <div class="resend-section">
-        Didn't receive the code? 
-        <span class="resend-link" id="resendLink">Resend code</span>
-        <span id="timer" class="timer" style="display: none;"></span>
-    </div>
+        <div class="resend-section">
+            Didn't receive the code? 
+            <span class="resend-link" id="resendLink">Resend code</span>
+            <span id="timer" class="timer" style="display: none;"></span>
+        </div>
 
-        <span class="resend-link" id="resendLink"><a href="{% url 'auth' %}">Go back</a></span>
+        <span class="resend-link" id="resendLink"><a href="{% url 'auth_view' %}">Go back</a></span>
     </div>
 
     <script>
         const inputs = document.querySelectorAll('.code-input');
         const verifyBtn = document.getElementById('verifyBtn');
+        const buttonText = document.getElementById('buttonText');
         const resendLink = document.getElementById('resendLink');
         const timer = document.getElementById('timer');
         
         let resendTimer = 60;
         let timerInterval;
+        let isVerifying = false;
 
         // Auto-focus and navigation logic
         inputs.forEach((input, index) => {
@@ -297,7 +327,21 @@
 
         function checkAllInputsFilled() {
             const allFilled = Array.from(inputs).every(input => input.value);
-            verifyBtn.disabled = !allFilled;
+            verifyBtn.disabled = !allFilled || isVerifying;
+        }
+
+        function setLoadingState(loading) {
+            isVerifying = loading;
+            
+            if (loading) {
+                verifyBtn.classList.add('loading');
+                verifyBtn.disabled = true;
+                buttonText.innerHTML = '<div class="loading-spinner"></div>Please wait...';
+            } else {
+                verifyBtn.classList.remove('loading');
+                buttonText.innerHTML = 'Verify Code';
+                checkAllInputsFilled();
+            }
         }
 
         function startResendTimer() {
@@ -316,52 +360,39 @@
                 }
             }, 1000);
         }
+
+        verifyBtn.addEventListener('click', () => {
+            if (isVerifying) return;
+            
+            const code = Array.from(inputs).map(i => i.value).join('');
+            const email = localStorage.getItem('emailForVerification');
+
+            if (!email) {
+                alert('No email found for verification.');
+                return;
+            }
+
+            setLoadingState(true);
  
-
-inputs.forEach((input, index) => {
-  input.addEventListener('input', () => {
-    // Move focus to next input if one digit entered
-    if(input.value.length === 1 && index < inputs.length - 1) {
-      inputs[index + 1].focus();
-    }
-
-    // Enable button if all inputs have 1 digit
-    const allFilled = Array.from(inputs).every(i => i.value.length === 1);
-    verifyBtn.disabled = !allFilled;
-  });
-
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Backspace' && input.value.length === 0 && index > 0) {
-      inputs[index - 1].focus();
-    }
-  });
-});
-
-verifyBtn.addEventListener('click', () => {
-  const code = Array.from(inputs).map(i => i.value).join('');
-  const email = localStorage.getItem('emailForVerification');
-
-  if (!email) {
-    alert('No email found for verification.');
-    return;
-  }
-
-  fetch('/verification/', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ email, code })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      window.location.href = "{% url 'userDashboard' %}";  // Adjust this to match your actual URL
-    } else {
-      alert(data.message);
-    }
-  })
-  .catch(() => window.location.href = "{% url 'userDashboard' %}");
-});
-
+            fetch('/verification/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, code })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.redirect) {
+                    window.location.href = data.redirect;
+                } else {
+                    alert(data.message);
+                    setLoadingState(false);
+                }
+            })
+            .catch(() => {
+                alert("An error occurred. Please try again.");
+                setLoadingState(false);
+            });
+        });
 
         // Resend code click
         resendLink.addEventListener('click', () => {

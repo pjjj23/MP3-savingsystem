@@ -736,7 +736,7 @@
               class="profile-pic"
             />
           </div>
-          <div class="username">Name</div>
+          <div class="username">{{ first_name }} {{ last_name }}</div>
           <div class="coins">
             <span>Contributor</span>
           </div>
@@ -748,7 +748,7 @@
             <a href="#" class="nav-item">
               <i class="fas fa-dashboard nav-icon"></i>
               <span class="nav-label">Dashboard</span>
-            </a> 
+            </a>
             <a href="#" class="nav-item">
               <i class="fas fa-user nav-icon"></i>
               <span class="nav-label">Profile</span>
@@ -759,7 +759,7 @@
         <div class="admin-section">
           <div class="nav-title"></div>
           <div class="nav-grid">
-            <a href="#" class="nav-item">
+            <a href="{% url 'logout' %}" class="nav-item">
               <i class="fa-solid fa-arrow-right-from-bracket"></i>
               <span class="nav-label">Logout</span>
             </a>
@@ -961,23 +961,23 @@
 
             <div class="balance-display">
               <div class="balance-label">Current Balance</div>
-              <div class="balance-amount">₱25,750.00</div>
-              <div class="balance-change">+₱1,200 this month</div>
+              <div class="balance-amount">₱{{ balance|floatformat:2 }}</div>
+              <div class="balance-change">
+                +₱{{ monthly_deposit|floatformat:2 }} this month
+              </div>
             </div>
 
             <div class="summary-items">
               <div class="summary-item">
                 <span class="summary-label">Deposit Amount:</span>
-                <span class="summary-value" id="summaryAmount">₱0.00</span>
-              </div>
-              <div class="summary-item">
-                <span class="summary-label">Transaction Fee:</span>
-                <span class="summary-value">₱0.00</span>
+                <span class="summary-value" id="summaryAmount"
+                  >₱{{ monthly_deposit|floatformat:2 }}</span
+                >
               </div>
               <div class="summary-item">
                 <span class="summary-label">New Balance:</span>
                 <span class="summary-value" id="summaryNewBalance"
-                  >₱25,750.00</span
+                  >₱{{ new_balance|floatformat:2 }}</span
                 >
               </div>
             </div>
@@ -1022,8 +1022,8 @@
       }
 
       // Back button functionality
-      function goBack() {  
-        window.location.href = "{% url 'userDashboard' %}"
+      function goBack() {
+        window.location.href = "{% url 'userDashboard' %}";
       }
 
       // Amount setting functionality
@@ -1062,6 +1062,52 @@
       document
         .getElementById("depositAmount")
         .addEventListener("input", updateSummary);
+
+      document
+        .getElementById("depositForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          const amount = parseFloat(
+            document.getElementById("depositAmount").value
+          );
+          const method = document.getElementById("paymentMethod").value;
+          const reference = document.getElementById("referenceNumber").value;
+          const purpose = document.getElementById("depositPurpose").value;
+          const notes = document.getElementById("depositNotes").value;
+
+          const response = await fetch("/user/process_deposit/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token }}", // If CSRF exempt, you can remove this
+            },
+            body: JSON.stringify({
+              amount: amount,
+              method: method,
+              reference: reference,
+              purpose: purpose,
+              notes: notes,
+            }),
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            alert("✅ Deposit successful!");
+            window.location.reload(); // Refresh to get updated balance
+          } else {
+            alert("❌ Error: " + result.message);
+          }
+        });
+
+      function clearForm() {
+        // Clear all inputs
+        document.getElementById("depositAmount").value = "";
+        document.getElementById("paymentMethod").value = "";
+        document.getElementById("referenceNumber").value = "";
+        document.getElementById("depositPurpose").value = "regular_savings"; // Default or first option
+        document.getElementById("depositNotes").value = "";
+      }
     </script>
   </body>
 </html>

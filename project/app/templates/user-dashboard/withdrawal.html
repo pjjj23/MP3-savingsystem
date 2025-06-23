@@ -1,1002 +1,1642 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Request Withdrawal | Dashboard</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    
-    body {
-      background-color: #f0f2f5;
-      overflow-x: hidden;
-    }
-    
-    .app-container {
-      width: 100%;
-      min-height: 100vh;
-      background-color: #fff; 
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      display: flex;
-      position: relative;
-    }
-    
-    .sidebar {
-      width: 300px;
-      background-color: #fff;
-      border-right: 1px solid #e9edef;
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100vh;
-      z-index: 1000;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-      overflow: hidden;
-    }
-    
-    .sidebar.open {
-      transform: translateX(0);
-    }
-    
-    .sidebar-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 999;
-      display: none;
-    }
-    
-    .sidebar-overlay.show {
-      display: block;
-    }
-    
-    .profile-section {
-      background-color: #1f5ca7;
-      color: white;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex-shrink: 0;
-    }
-    
-    .menu-icon {
-      align-self: flex-start;
-      margin-bottom: 15px;
-      cursor: pointer;
-      font-size: 20px;
-      padding: 5px;
-    }
-    
-    .mobile-menu-btn {
-      display: none;
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 1001;
-      background-color: #1f5ca7;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      width: 45px;
-      height: 45px;
-      font-size: 18px;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    
-    .profile-pic {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 10px;
-      background-color: #ccc;
-    }
-    
-    .username {
-      font-size: 18px;
-      font-weight: 500;
-      margin-bottom: 5px;
-    }
-    
-    .coins {
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      color: #f1c40f;
-    }
-    
-    .navigation-section {
-      padding: 15px 10px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    
-    .nav-title {
-      font-size: 14px;
-      color: #8a8a8a;
-      margin-bottom: 15px;
-      padding-left: 10px;
-    }
-    
-    .nav-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 15px;
-    }
-    
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #f5f7fb;
-      border-radius: 12px;
-      padding: 15px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      text-decoration: none;
-      color: black;
-    }
-    
-    .nav-item:hover {
-      background-color: #e8edf5;
-    }
-    
-    .nav-item.active {
-      background-color: #1f5ca7;
-      color: white;
-    }
-    
-    .nav-icon {
-      font-size: 24px;
-      margin-bottom: 5px;
-    }
-    
-    .nav-label {
-      font-size: 12px;
-      text-align: center;
-    }
-    
-    .admin-section {
-      margin-top: auto;
-      padding: 15px 10px;
-      flex-shrink: 0;
-    }
-    
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 25px;
-      background-color: #f8f9fa;
-      height: 100vh;
-      overflow-y: auto;
-      overflow-x: hidden;
-    }
-     
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      top: 50px;
-      left: 10px;
-      background-color: white;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      border-radius: 4px;
-      z-index: 100;
-    }
-
-    .dropdown-menu a {
-      display: block;
-      padding: 10px 15px;
-      text-decoration: none;
-      color: #333;
-    }
-
-    .dropdown-menu a:hover {
-      background-color: #f5f5f5;
-    }
-
-    /* Back Button */
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      background-color: #6c757d;
-      color: white;
-      padding: 10px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 500;
-      text-decoration: none;
-      transition: all 0.3s ease;
-      margin-bottom: 20px;
-      width: fit-content;
-    }
-
-    .back-btn:hover {
-      background-color: #5a6268;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .back-btn i {
-      margin-right: 8px;
-    }
-
-    /* Page Header */
-    .page-header {
-      margin-bottom: 30px;
-    }
-
-    .page-title {
-      font-size: 28px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 8px;
-    }
-
-    .page-subtitle {
-      color: #777;
-      font-size: 16px;
-    }
-
-    /* Withdrawal Form */
-    .withdrawal-container {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 25px;
-      max-width: 800px;
-    }
-
-    .form-card {
-      background-color: white;
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      border: 1px solid #e9ecef;
-    }
-
-    .form-header {
-      display: flex;
-      align-items: center;
-      margin-bottom: 25px;
-      padding-bottom: 20px;
-      border-bottom: 2px solid #f8f9fa;
-    }
-
-    .form-icon {
-      width: 50px;
-      height: 50px;
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 24px;
-      margin-right: 15px;
-    }
-
-    .form-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 4px;
-    }
-
-    .form-description {
-      color: #777;
-      font-size: 14px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-    }
-
-    .form-label {
-      display: block;
-      font-weight: 500;
-      color: #333;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e9ecef;
-      border-radius: 8px;
-      font-size: 16px;
-      transition: all 0.3s ease;
-      background-color: #fff;
-    }
-
-    .form-input:focus {
-      outline: none;
-      border-color: #1f5ca7;
-      box-shadow: 0 0 0 3px rgba(31, 92, 167, 0.1);
-    }
-
-    .form-input.error {
-      border-color: #e74c3c;
-    }
-
-    .form-textarea {
-      min-height: 100px;
-      resize: vertical;
-    }
-
-    .form-select {
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
-      background-position: right 12px center;
-      background-repeat: no-repeat;
-      background-size: 16px;
-      padding-right: 40px;
-      cursor: pointer;
-    }
-
-    .error-message {
-      color: #e74c3c;
-      font-size: 12px;
-      margin-top: 5px;
-      display: none;
-    }
-
-    .success-message {
-      color: #27ae60;
-      font-size: 12px;
-      margin-top: 5px;
-      display: none;
-    }
-
-    /* Account Balance Info */
-    .balance-info {
-      background: linear-gradient(135deg, #1f5ca7, #2980b9);
-      color: white;
-      padding: 20px;
-      border-radius: 12px;
-      margin-bottom: 25px;
-      text-align: center;
-    }
-
-    .balance-label {
-      font-size: 14px;
-      opacity: 0.9;
-      margin-bottom: 5px;
-    }
-
-    .balance-amount {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 5px;
-    }
-
-    .balance-currency {
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    /* Amount Input Special Styling */
-    .amount-input-group {
-      position: relative;
-    }
-
-    .currency-symbol {
-      position: absolute;
-      left: 16px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #777;
-      font-weight: 500;
-      font-size: 16px;
-      pointer-events: none;
-    }
-
-    .amount-input {
-      padding-left: 40px;
-      font-size: 18px;
-      font-weight: 500;
-    }
-
-    /* Submit Button */
-    .submit-btn {
-      background: linear-gradient(135deg, #e74c3c, #c0392b);
-      color: white;
-      padding: 16px 30px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      width: 100%;
-      margin-top: 10px;
-    }
-
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
-    }
-
-    .submit-btn:active {
-      transform: translateY(0);
-    }
-
-    .submit-btn:disabled {
-      background: #bdc3c7;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-    }
-
-    /* Terms and Conditions */
-    .terms-section {
-      background-color: #f8f9fa;
-      padding: 20px;
-      border-radius: 10px;
-      margin-top: 20px;
-    }
-
-    .terms-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 15px;
-    }
-
-    .terms-list {
-      list-style: none;
-      padding: 0;
-    }
-
-    .terms-list li {
-      padding: 8px 0;
-      color: #555;
-      font-size: 14px;
-      position: relative;
-      padding-left: 20px;
-    }
-
-    .terms-list li::before {
-      content: "•";
-      color: #e74c3c;
-      font-weight: bold;
-      position: absolute;
-      left: 0;
-    }
-
-    .checkbox-group {
-      display: flex;
-      align-items: flex-start;
-      margin-top: 20px;
-      gap: 12px;
-    }
-
-    .checkbox-input {
-      margin-top: 2px;
-      transform: scale(1.2);
-      accent-color: #1f5ca7;
-    }
-
-    .checkbox-label {
-      font-size: 14px;
-      color: #555;
-      line-height: 1.5;
-      cursor: pointer;
-    }
-
-    /* Media Queries */
-    @media (min-width: 768px) {
-      .sidebar {
-        position: static;
-        transform: translateX(0);
-        height: 100vh;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Request Withdrawal | Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
       }
-      
-      .mobile-menu-btn {
+
+      body {
+        background-color: #f0f2f5;
+        overflow-x: hidden;
+      }
+
+      .app-container {
+        width: 100%;
+        min-height: 100vh;
+        background-color: #fff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        position: relative;
+      }
+
+      .sidebar {
+        width: 300px;
+        background-color: #fff;
+        border-right: 1px solid #e9edef;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow: hidden;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
         display: none;
       }
-      
-      .main-content {
-        margin-left: 0;
-        padding: 25px;
-      }
-      
-      .withdrawal-container {
-        grid-template-columns: 2fr 1fr;
-      }
-    }
-    
-    @media (max-width: 767px) {
-      .mobile-menu-btn {
+
+      .sidebar-overlay.show {
         display: block;
       }
-      
-      .main-content {
-        width: 100%;
-        padding: 80px 15px 25px 15px;
-        height: 100vh;
-      }
-      
-      .page-title {
-        font-size: 24px;
-      }
-      
-      .form-card {
+
+      .profile-section {
+        background-color: #1f5ca7;
+        color: white;
         padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
       }
-      
-      .balance-amount {
-        font-size: 28px;
-      }
-      
-      .nav-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .nav-item {
-        flex-direction: row;
-        justify-content: flex-start;
-        gap: 15px;
-        padding: 15px 20px;
-      }
-      
-      .nav-icon {
-        margin-bottom: 0;
+
+      .menu-icon {
+        align-self: flex-start;
+        margin-bottom: 15px;
+        cursor: pointer;
         font-size: 20px;
+        padding: 5px;
       }
-      
+
+      .mobile-menu-btn {
+        display: none;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background-color: #1f5ca7;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .profile-pic {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 10px;
+        background-color: #ccc;
+      }
+
+      .username {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 5px;
+      }
+
+      .coins {
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        color: #f1c40f;
+      }
+
+      .navigation-section {
+        padding: 15px 10px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .nav-title {
+        font-size: 14px;
+        color: #8a8a8a;
+        margin-bottom: 15px;
+        padding-left: 10px;
+      }
+
+      .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #f5f7fb;
+        border-radius: 12px;
+        padding: 15px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-decoration: none;
+        color: black;
+      }
+
+      .nav-item:hover {
+        background-color: #e8edf5;
+      }
+
+      .nav-item.active {
+        background-color: #1f5ca7;
+        color: white;
+      }
+
+      .nav-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+
       .nav-label {
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .admin-section {
+        margin-top: auto;
+        padding: 15px 10px;
+        flex-shrink: 0;
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 25px;
+        background-color: #f8f9fa;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 50px;
+        left: 10px;
+        background-color: white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+        z-index: 100;
+      }
+
+      .dropdown-menu a {
+        display: block;
+        padding: 10px 15px;
+        text-decoration: none;
+        color: #333;
+      }
+
+      .dropdown-menu a:hover {
+        background-color: #f5f5f5;
+      }
+
+      /* Back Button */
+      .back-btn {
+        display: inline-flex;
+        align-items: center;
+        background-color: #6c757d;
+        color: white;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+        width: fit-content;
+      }
+
+      .back-btn:hover {
+        background-color: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .back-btn i {
+        margin-right: 8px;
+      }
+
+      /* Page Header */
+      .page-header {
+        margin-bottom: 30px;
+      }
+
+      .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .page-subtitle {
+        color: #777;
+        font-size: 16px;
+      }
+
+      /* Withdrawal Form */
+      .withdrawal-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 25px;
+        max-width: 800px;
+      }
+
+      .form-card {
+        background-color: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e9ecef;
+      }
+
+      .form-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+      }
+
+      .form-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        margin-right: 15px;
+      }
+
+      .form-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .form-description {
+        color: #777;
         font-size: 14px;
       }
-    }
-    
-    @media (max-width: 480px) {
-      .main-content {
-        padding: 80px 10px 25px 10px;
+
+      .form-group {
+        margin-bottom: 20px;
       }
-      
-      .form-card {
-        padding: 15px;
+
+      .form-label {
+        display: block;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 8px;
+        font-size: 14px;
       }
-      
-      .page-title {
-        font-size: 20px;
+
+      .form-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        background-color: #fff;
       }
-      
-      .balance-amount {
-        font-size: 24px;
+
+      .form-input:focus {
+        outline: none;
+        border-color: #1f5ca7;
+        box-shadow: 0 0 0 3px rgba(31, 92, 167, 0.1);
       }
-      
-      .form-header {
-        flex-direction: column;
+
+      .form-input.error {
+        border-color: #e74c3c;
+      }
+
+      .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 12px center;
+        background-repeat: no-repeat;
+        background-size: 16px;
+        padding-right: 40px;
+        cursor: pointer;
+      }
+
+      .error-message {
+        color: #e74c3c;
+        font-size: 12px;
+        margin-top: 5px;
+        display: none;
+      }
+
+      .success-message {
+        color: #27ae60;
+        font-size: 12px;
+        margin-top: 5px;
+        display: none;
+      }
+
+      /* Account Balance Info */
+      .balance-info {
+        background: linear-gradient(135deg, #1f5ca7, #2980b9);
+        color: white;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 25px;
         text-align: center;
-        gap: 15px;
       }
-      
-      .form-icon {
-        margin-right: 0;
+
+      .balance-label {
+        font-size: 14px;
+        opacity: 0.9;
+        margin-bottom: 5px;
       }
-    }
 
-    /* Success Modal */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 2000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.5);
-      backdrop-filter: blur(5px);
-    }
+      .balance-amount {
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
 
-    .modal-content {
-      background-color: white;
-      margin: 10% auto;
-      padding: 30px;
-      border-radius: 16px;
-      width: 90%;
-      max-width: 500px;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
+      .balance-currency {
+        font-size: 14px;
+        opacity: 0.8;
+      }
 
-    .modal-icon {
-      width: 80px;
-      height: 80px;
-      background: linear-gradient(135deg, #27ae60, #2ecc71);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 36px;
-      margin: 0 auto 20px;
-    }
+      /* Amount Input Special Styling */
+      .amount-input-group {
+        position: relative;
+      }
 
-    .modal-title {
-      font-size: 24px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 10px;
-    }
+      .currency-symbol {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #777;
+        font-weight: 500;
+        font-size: 16px;
+        pointer-events: none;
+      }
 
-    .modal-text {
-      color: #777;
-      margin-bottom: 25px;
-      line-height: 1.6;
-    }
+      .amount-input {
+        padding-left: 40px;
+        font-size: 18px;
+        font-weight: 500;
+      }
 
-    .modal-btn {
-      background-color: #1f5ca7;
-      color: white;
-      padding: 12px 30px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
+      /* Submit Button */
+      .submit-btn {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: white;
+        padding: 16px 30px;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 10px;
+      }
 
-    .modal-btn:hover {
-      background-color: #1a4d8a;
-      transform: translateY(-2px);
-    }
-  </style>
-</head>
-<body>
-  <!-- Mobile Menu Button -->
-  <button class="mobile-menu-btn" onclick="toggleSidebar()">
-    <i class="fas fa-bars"></i>
-  </button>
-  
-  <!-- Sidebar Overlay -->
-  <div class="sidebar-overlay" onclick="closeSidebar()"></div>
-  
-  <div class="app-container">
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-      <div class="profile-section">
-        <div class="menu-icon" onclick="toggleDropdown()">
-          <i class="fas fa-bars"></i>
+      .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(231, 76, 60, 0.3);
+      }
+
+      .submit-btn:active {
+        transform: translateY(0);
+      }
+
+      .submit-btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* Terms and Conditions */
+      .terms-section {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+      }
+
+      .terms-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .terms-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .terms-list li {
+        padding: 8px 0;
+        color: #555;
+        font-size: 14px;
+        position: relative;
+        padding-left: 20px;
+      }
+
+      .terms-list li::before {
+        content: "•";
+        color: #e74c3c;
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: flex-start;
+        margin-top: 20px;
+        gap: 12px;
+      }
+
+      .checkbox-input {
+        margin-top: 2px;
+        transform: scale(1.2);
+        accent-color: #1f5ca7;
+      }
+
+      .checkbox-label {
+        font-size: 14px;
+        color: #555;
+        line-height: 1.5;
+        cursor: pointer;
+      }
+
+      /* Media Queries */
+      @media (min-width: 768px) {
+        .sidebar {
+          position: static;
+          transform: translateX(0);
+          height: 100vh;
+        }
+
+        .mobile-menu-btn {
+          display: none;
+        }
+
+        .main-content {
+          margin-left: 0;
+          padding: 25px;
+        }
+
+        .withdrawal-container {
+          grid-template-columns: 2fr 1fr;
+        }
+        .withdrawal-history-section {
+          padding: 20px;
+          margin-top: 20px;
+        }
+
+        .history-header {
+          flex-direction: column;
+          text-align: center;
+          gap: 15px;
+        }
+
+        .history-icon {
+          margin-right: 0;
+        }
+
+        .withdrawal-table {
+          font-size: 12px;
+        }
+
+        .withdrawal-table th,
+        .withdrawal-table td {
+          padding: 10px 8px;
+        }
+
+        .amount-cell {
+          font-size: 14px;
+        }
+
+        .view-history-btn {
+          padding: 14px 20px;
+          font-size: 15px;
+          max-width: 260px;
+        }
+
+        .view-history-btn .btn-text {
+          margin-right: 10px;
+        }
+      }
+
+      @media (max-width: 767px) {
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .main-content {
+          width: 100%;
+          padding: 80px 15px 25px 15px;
+          height: 100vh;
+        }
+
+        .page-title {
+          font-size: 24px;
+        }
+
+        .form-card {
+          padding: 20px;
+        }
+
+        .balance-amount {
+          font-size: 28px;
+        }
+
+        .nav-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .nav-item {
+          flex-direction: row;
+          justify-content: flex-start;
+          gap: 15px;
+          padding: 15px 20px;
+        }
+
+        .nav-icon {
+          margin-bottom: 0;
+          font-size: 20px;
+        }
+
+        .nav-label {
+          font-size: 14px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .main-content {
+          padding: 80px 10px 25px 10px;
+        }
+
+        .form-card {
+          padding: 15px;
+        }
+
+        .page-title {
+          font-size: 20px;
+        }
+
+        .balance-amount {
+          font-size: 24px;
+        }
+
+        .form-header {
+          flex-direction: column;
+          text-align: center;
+          gap: 15px;
+        }
+
+        .form-icon {
+          margin-right: 0;
+        }
+        .withdrawal-table {
+          display: block;
+          overflow-x: auto;
+          white-space: nowrap;
+        }
+
+        .withdrawal-table th,
+        .withdrawal-table td {
+          min-width: 100px;
+          padding: 8px 6px;
+        }
+        .view-history-btn {
+          padding: 12px 18px;
+          font-size: 14px;
+          max-width: 240px;
+        }
+      }
+
+      /* Success Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+      }
+
+      .modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 30px;
+        border-radius: 16px;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
+
+      .modal-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 36px;
+        margin: 0 auto 20px;
+      }
+
+      .modal-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .modal-text {
+        color: #777;
+        margin-bottom: 25px;
+        line-height: 1.6;
+      }
+
+      .modal-btn {
+        background-color: #1f5ca7;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .modal-btn:hover {
+        background-color: #1a4d8a;
+        transform: translateY(-2px);
+      }
+
+      .withdrawal-history-section {
+        background-color: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border: 1px solid #e9ecef;
+        margin-top: 25px;
+        max-width: 100%;
+      }
+
+      .history-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+      }
+
+      .history-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 24px;
+        margin-right: 15px;
+      }
+
+      .history-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 4px;
+      }
+
+      .history-description {
+        color: #777;
+        font-size: 14px;
+      }
+
+      .withdrawal-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        background-color: white;
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .withdrawal-table thead {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      }
+
+      .withdrawal-table th {
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .withdrawal-table td {
+        padding: 16px 12px;
+        border-bottom: 1px solid #f1f3f4;
+        font-size: 14px;
+        color: #555;
+        vertical-align: middle;
+      }
+
+      .withdrawal-table tbody tr {
+        transition: background-color 0.2s ease;
+      }
+
+      .withdrawal-table tbody tr:hover {
+        background-color: #f8f9fa;
+      }
+
+      .withdrawal-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* Status badges */
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeaa7;
+      }
+
+      .status-approved {
+        background-color: #d1e7dd;
+        color: #0f5132;
+        border: 1px solid #a3cfbb;
+      }
+
+      .status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f1aeb5;
+      }
+
+      .status-completed {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+
+      /* Amount styling */
+      .amount-cell {
+        font-weight: 600;
+        color: #e74c3c;
+        font-size: 16px;
+      }
+
+      /* Method badges */
+      .method-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        background-color: #e3f2fd;
+        color: #1976d2;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+      }
+
+      .method-badge i {
+        margin-right: 5px;
+        font-size: 10px;
+      }
+
+      /* Empty state */
+      .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #777;
+      }
+
+      .empty-state-icon {
+        width: 80px;
+        height: 80px;
+        background-color: #f8f9fa;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        color: #bdc3c7;
+        font-size: 36px;
+      }
+
+      .empty-state-title {
+        font-size: 18px;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 8px;
+      }
+
+      .empty-state-text {
+        font-size: 14px;
+        color: #777;
+      }
+
+      .view-history-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #1976d2, #235cd7);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.4s ease;
+        margin: 10px auto 10px auto;
+        max-width: 280px;
+        box-shadow: 0 4px 15px rgba(155, 89, 182, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .view-history-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(155, 89, 182, 0.4);
+        background: linear-gradient(135deg, #3c3aa2, #9b59b6);
+      }
+
+      .view-history-btn:active {
+        transform: translateY(-1px);
+      }
+
+      .view-history-btn .btn-text {
+        margin-right: 12px;
+        font-weight: 600;
+      }
+
+      .view-history-btn .btn-arrow {
+        font-size: 18px;
+        transition: transform 0.3s ease;
+        animation: bounce 2s infinite;
+      }
+
+      .view-history-btn:hover .btn-arrow {
+        transform: translateY(3px);
+      }
+
+      /* Bouncing animation for arrow */
+      @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-3px);
+        }
+        60% {
+          transform: translateY(-2px);
+        }
+      }
+
+      /* Pulse effect on button */
+      .view-history-btn::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      .view-history-btn:hover::before {
+        left: 100%;
+      }
+
+      /* When history is visible, change button appearance */
+      .view-history-btn.history-visible {
+        background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
+      }
+
+      .view-history-btn.history-visible:hover {
+        background: linear-gradient(135deg, #a2b3b4, #95a5a6);
+        box-shadow: 0 8px 25px rgba(149, 165, 166, 0.4);
+      }
+
+      .view-history-btn.history-visible .btn-arrow {
+        transform: rotate(180deg);
+        animation: none;
+      }
+
+      .view-history-btn.history-visible .btn-text::after {
+        content: " (Hide)";
+        font-weight: 400;
+        opacity: 0.8;
+      }
+
+      /* Smooth scroll behavior */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* Hide withdrawal history by default */
+      .withdrawal-history-section {
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: all 0.5s ease-in-out;
+        transform: translateY(-20px);
+      }
+
+      .withdrawal-history-section.visible {
+        opacity: 1;
+        max-height: 1000px;
+        transform: translateY(0);
+        margin-top: 25px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="app-container">
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar">
+        <div class="profile-section">
+          <div class="menu-icon" onclick="toggleDropdown()">
+            <i class="fas fa-bars"></i>
+          </div>
+          <div id="dropdown-menu" class="dropdown-menu">
+            <a href="{% url 'logout' %}">Logout</a>
+          </div>
+          <div>
+            <img
+              src="https://firebasestorage.googleapis.com/v0/b/ctuacaccreditedboardinghouse.appspot.com/o/AlayTrabaho%2Fdefault-profileimg.png?alt=media&token=a150b652-5c6c-46e9-a6ee-895576a83d98"
+              alt="Profile"
+              class="profile-pic"
+            />
+          </div>
+          <div class="username">{{ first_name }} {{ last_name }}</div>
+          <div class="coins">
+            <span>Contributor</span>
+          </div>
         </div>
-        <div id="dropdown-menu" class="dropdown-menu">
-          <a href="#">Logout</a>
+
+        <div class="navigation-section">
+          <div class="nav-title">User Navigation</div>
+          <div class="nav-grid">
+            <a href="#" class="nav-item">
+              <i class="fas fa-dashboard nav-icon"></i>
+              <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="#" class="nav-item">
+              <i class="fas fa-user nav-icon"></i>
+              <span class="nav-label">Profile</span>
+            </a>
+          </div>
         </div>
-        <div><img src="https://firebasestorage.googleapis.com/v0/b/ctuacaccreditedboardinghouse.appspot.com/o/AlayTrabaho%2Fdefault-profileimg.png?alt=media&token=a150b652-5c6c-46e9-a6ee-895576a83d98" alt="Profile" class="profile-pic"/></div>
-        <div class="username">Name</div>
-        <div class="coins"> 
-          <span>Contributor</span>
+
+        <div class="admin-section">
+          <div class="nav-title"></div>
+          <div class="nav-grid">
+            <a href="{% url 'logout' %}" class="nav-item">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+              <span class="nav-label">Logout</span>
+            </a>
+          </div>
         </div>
       </div>
-      
-      <div class="navigation-section">
-        <div class="nav-title">User Navigation</div>
-        <div class="nav-grid">
-          <a href="#" class="nav-item">
-            <i class="fas fa-dashboard nav-icon"></i>
-            <span class="nav-label">Dashboard</span>
-          </a> 
-          <a href="#" class="nav-item">
-            <i class="fas fa-user nav-icon"></i>
-            <span class="nav-label">Profile</span>
-          </a>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <a href="#" class="back-btn" onclick="goBack()">
+          <i class="fas fa-arrow-left"></i>
+          Back to Dashboard
+        </a>
+
+        <div class="page-header">
+          <h1 class="page-title">Request Withdrawal</h1>
+          <p class="page-subtitle">
+            Submit a withdrawal request from your savings account
+          </p>
         </div>
-      </div>
-      
-      <div class="admin-section">
-        <div class="nav-title"></div>
-        <div class="nav-grid">
-          <a href="#" class="nav-item">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
-            <span class="nav-label">Logout</span>
-          </a>
+
+        <div class="withdrawal-container">
+          <!-- Main Form -->
+          <div class="form-card">
+            <div class="form-header">
+              <div class="form-icon">
+                <i class="fas fa-money-bill-transfer"></i>
+              </div>
+              <div>
+                <h2 class="form-title">Withdrawal Request Form</h2>
+                <p class="form-description">
+                  Please fill out all required information
+                </p>
+              </div>
+            </div>
+
+            <div class="balance-info">
+              <div class="balance-label">Available Balance</div>
+              <div class="balance-amount">{{ balance }}</div>
+              <div class="balance-currency">Philippine Peso</div>
+            </div>
+
+            <form id="withdrawalForm">
+              <div class="form-group">
+                <label class="form-label" for="amount"
+                  >Withdrawal Amount *</label
+                >
+                <div class="amount-input-group">
+                  <span class="currency-symbol">₱</span>
+                  <input
+                    type="number"
+                    id="amount"
+                    name="amount"
+                    class="form-input amount-input"
+                    placeholder="0.00"
+                    min="100"
+                    max="25450"
+                    step="0.01"
+                    required
+                  />
+                </div>
+                <div class="error-message" id="amountError">
+                  Please enter a valid amount
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="method"
+                  >Withdrawal Method *</label
+                >
+                <select
+                  id="method"
+                  name="method"
+                  class="form-input form-select"
+                  required
+                >
+                  <option value="">Select withdrawal method</option>
+                  <option value="check">Check Pickup</option>
+                  <option value="cash">Cash Pickup</option>
+                </select>
+                <div class="error-message" id="methodError">
+                  Please select a withdrawal method
+                </div>
+              </div>
+
+              <div class="form-group" id="bankDetails" style="display: none">
+                <label class="form-label" for="bankAccount"
+                  >Bank Account Number *</label
+                >
+                <input
+                  type="text"
+                  id="bankAccount"
+                  name="bankAccount"
+                  class="form-input"
+                  placeholder="Enter your bank account number"
+                />
+                <div class="error-message" id="bankError">
+                  Please enter a valid bank account number
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="reason"
+                  >Reason for Withdrawal *</label
+                >
+                <select
+                  id="reason"
+                  name="reason"
+                  class="form-input form-select"
+                  required
+                >
+                  <option value="">Select reason</option>
+                  <option value="emergency">Emergency Expenses</option>
+                  <option value="medical">Medical Expenses</option>
+                  <option value="education">Education</option>
+                  <option value="business">Business Investment</option>
+                  <option value="personal">Personal Use</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="error-message" id="reasonError">
+                  Please select a reason
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="description"
+                  >Additional Details</label
+                >
+                <textarea
+                  id="description"
+                  name="description"
+                  class="form-input form-textarea"
+                  placeholder="Provide additional details about your withdrawal request (optional)"
+                  maxlength="500"
+                ></textarea>
+              </div>
+
+              <div class="terms-section">
+                <h3 class="terms-title">Withdrawal Terms & Conditions</h3>
+                <ul class="terms-list">
+                  <li>Minimum withdrawal amount is ₱100.00</li>
+                  <li>Processing time: 24 hours</li>
+                  <li>Bank transfer fees may apply (₱15.00)</li>
+                  <li>
+                    Withdrawal requests are processed during business hours
+                  </li>
+                  <li>You will receive a confirmation email once processed</li>
+                </ul>
+
+                <div class="checkbox-group">
+                  <input
+                    type="checkbox"
+                    id="agreeTerms"
+                    class="checkbox-input"
+                    required
+                  />
+                  <label for="agreeTerms" class="checkbox-label">
+                    I agree to the terms and conditions and confirm that all
+                    information provided is accurate.
+                  </label>
+                </div>
+              </div>
+
+              <button type="submit" class="submit-btn" id="submitBtn" disabled>
+                <i class="fas fa-paper-plane" style="margin-right: 8px"></i>
+                Submit Withdrawal Request
+              </button>
+            </form>
+          </div>
+
+          <!-- Summary Card -->
+          <div class="form-card">
+            <div class="form-header">
+              <div
+                class="form-icon"
+                style="background: linear-gradient(135deg, #3498db, #2980b9)"
+              >
+                <i class="fas fa-info-circle"></i>
+              </div>
+              <div>
+                <h2 class="form-title">Request Summary</h2>
+                <p class="form-description">Review your withdrawal details</p>
+              </div>
+            </div>
+
+            <div style="space-y: 15px">
+              <button
+                class="view-history-btn"
+                id="viewHistoryBtn"
+                onclick="toggleWithdrawalHistory()"
+              >
+                <span class="btn-text">View Withdrawal History</span>
+                <i class="fas fa-chevron-down btn-arrow"></i>
+              </button>
+              <div
+                style="
+                  padding: 15px;
+                  background-color: #f8f9fa;
+                  border-radius: 8px;
+                  margin-bottom: 15px;
+                "
+              >
+                <div style="color: #777; font-size: 12px; margin-bottom: 5px">
+                  WITHDRAWAL AMOUNT
+                </div>
+                <div
+                  style="font-size: 20px; font-weight: 600; color: #e74c3c"
+                  id="summaryAmount"
+                >
+                  ₱0.00
+                </div>
+              </div>
+
+              <div
+                style="
+                  padding: 15px;
+                  background-color: #f8f9fa;
+                  border-radius: 8px;
+                  margin-bottom: 15px;
+                "
+              >
+                <div style="color: #777; font-size: 12px; margin-bottom: 5px">
+                  METHOD
+                </div>
+                <div style="font-weight: 500; color: #333" id="summaryMethod">
+                  Not selected
+                </div>
+              </div>
+
+              <div
+                style="
+                  padding: 15px;
+                  background-color: #f8f9fa;
+                  border-radius: 8px;
+                  margin-bottom: 15px;
+                "
+              >
+                <div style="color: #777; font-size: 12px; margin-bottom: 5px">
+                  REASON
+                </div>
+                <div style="font-weight: 500; color: #333" id="summaryReason">
+                  Not selected
+                </div>
+              </div>
+
+              <div
+                style="
+                  padding: 15px;
+                  background-color: #fff3cd;
+                  border-radius: 8px;
+                  border-left: 4px solid #f39c12;
+                "
+              >
+                <div style="font-size: 14px; color: #856404">
+                  <i
+                    class="fas fa-exclamation-triangle"
+                    style="margin-right: 8px"
+                  ></i>
+                  <strong>Processing Time:</strong> 24 hours
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    
-    <!-- Main Content -->
-    <div class="main-content">
-      <a href="#" class="back-btn" onclick="goBack()">
-        <i class="fas fa-arrow-left"></i>
-        Back to Dashboard
-      </a>
-      
-      <div class="page-header">
-        <h1 class="page-title">Request Withdrawal</h1>
-        <p class="page-subtitle">Submit a withdrawal request from your savings account</p>
-      </div>
-      
-      <div class="withdrawal-container">
-        <!-- Main Form -->
-        <div class="form-card">
-          <div class="form-header">
-            <div class="form-icon">
-              <i class="fas fa-money-bill-transfer"></i>
-            </div>
-            <div>
-              <h2 class="form-title">Withdrawal Request Form</h2>
-              <p class="form-description">Please fill out all required information</p>
-            </div>
-          </div>
-
-          <div class="balance-info">
-            <div class="balance-label">Available Balance</div>
-            <div class="balance-amount">₱25,450.00</div>
-            <div class="balance-currency">Philippine Peso</div>
-          </div>
-          
-          <form id="withdrawalForm">
-            <div class="form-group">
-              <label class="form-label" for="amount">Withdrawal Amount *</label>
-              <div class="amount-input-group">
-                <span class="currency-symbol">₱</span>
-                <input type="number" 
-                       id="amount" 
-                       name="amount" 
-                       class="form-input amount-input" 
-                       placeholder="0.00"
-                       min="100"
-                       max="25450"
-                       step="0.01"
-                       required>
-              </div>
-              <div class="error-message" id="amountError">Please enter a valid amount</div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="method">Withdrawal Method *</label>
-              <select id="method" name="method" class="form-input form-select" required>
-                <option value="">Select withdrawal method</option>
-                <option value="bank_transfer">Bank Transfer</option>
-                <option value="check">Check Pickup</option>
-                <option value="cash">Cash Pickup</option>
-              </select>
-              <div class="error-message" id="methodError">Please select a withdrawal method</div>
-            </div>
-
-            <div class="form-group" id="bankDetails" style="display: none;">
-              <label class="form-label" for="bankAccount">Bank Account Number *</label>
-              <input type="text" 
-                     id="bankAccount" 
-                     name="bankAccount" 
-                     class="form-input" 
-                     placeholder="Enter your bank account number">
-              <div class="error-message" id="bankError">Please enter a valid bank account number</div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="reason">Reason for Withdrawal *</label>
-              <select id="reason" name="reason" class="form-input form-select" required>
-                <option value="">Select reason</option>
-                <option value="emergency">Emergency Expenses</option>
-                <option value="medical">Medical Expenses</option>
-                <option value="education">Education</option>
-                <option value="business">Business Investment</option>
-                <option value="personal">Personal Use</option>
-                <option value="other">Other</option>
-              </select>
-              <div class="error-message" id="reasonError">Please select a reason</div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="description">Additional Details</label>
-              <textarea id="description" 
-                       name="description" 
-                       class="form-input form-textarea" 
-                       placeholder="Provide additional details about your withdrawal request (optional)"
-                       maxlength="500"></textarea>
-            </div>
-
-            <div class="terms-section">
-              <h3 class="terms-title">Withdrawal Terms & Conditions</h3>
-              <ul class="terms-list">
-                <li>Minimum withdrawal amount is ₱100.00</li>
-                <li>Processing time: 3-5 business days</li>
-                <li>Bank transfer fees may apply (₱15.00)</li>
-                <li>Withdrawal requests are processed during business hours</li>
-                <li>You will receive a confirmation email once processed</li>
-              </ul>
-              
-              <div class="checkbox-group">
-                <input type="checkbox" id="agreeTerms" class="checkbox-input" required>
-                <label for="agreeTerms" class="checkbox-label">
-                  I agree to the terms and conditions and confirm that all information provided is accurate.
-                </label>
-              </div>
-            </div>
-
-            <button type="submit" class="submit-btn" id="submitBtn" disabled>
-              <i class="fas fa-paper-plane" style="margin-right: 8px;"></i>
-              Submit Withdrawal Request
-            </button>
-          </form>
+    <div class="withdrawal-history-section">
+      <div class="history-header">
+        <div class="history-icon">
+          <i class="fas fa-history"></i>
         </div>
-
-        <!-- Summary Card -->
-        <div class="form-card">
-          <div class="form-header">
-            <div class="form-icon" style="background: linear-gradient(135deg, #3498db, #2980b9);">
-              <i class="fas fa-info-circle"></i>
-            </div>
-            <div>
-              <h2 class="form-title">Request Summary</h2>
-              <p class="form-description">Review your withdrawal details</p>
-            </div>
-          </div>
-
-          <div style="space-y: 15px;">
-            <div style="padding: 15px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">
-              <div style="color: #777; font-size: 12px; margin-bottom: 5px;">WITHDRAWAL AMOUNT</div>
-              <div style="font-size: 20px; font-weight: 600; color: #e74c3c;" id="summaryAmount">₱0.00</div>
-            </div>
-
-            <div style="padding: 15px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">
-              <div style="color: #777; font-size: 12px; margin-bottom: 5px;">METHOD</div>
-              <div style="font-weight: 500; color: #333;" id="summaryMethod">Not selected</div>
-            </div>
-
-            <div style="padding: 15px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 15px;">
-              <div style="color: #777; font-size: 12px; margin-bottom: 5px;">REASON</div>
-              <div style="font-weight: 500; color: #333;" id="summaryReason">Not selected</div>
-            </div>
-
-            <div style="padding: 15px; background-color: #fff3cd; border-radius: 8px; border-left: 4px solid #f39c12;">
-              <div style="font-size: 14px; color: #856404;">
-                <i class="fas fa-exclamation-triangle" style="margin-right: 8px;"></i>
-                <strong>Processing Time:</strong> 3-5 business days
-              </div>
-            </div>
-          </div>
+        <div>
+          <h2 class="history-title">Withdrawal History</h2>
+          <p class="history-description">
+            Track your previous withdrawal requests and their status
+          </p>
         </div>
       </div>
-    </div>
-  </div>
 
-  <!-- Success Modal -->
-  <div id="successModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-icon">
-        <i class="fas fa-check"></i>
+      {% if withdrawal_history %}
+      <div style="overflow-x: auto">
+        <table class="withdrawal-table">
+          <thead>
+            <tr>
+              <th>
+                <i class="fas fa-money-bill-wave" style="margin-right: 8px"></i
+                >Amount
+              </th>
+              <th>
+                <i class="fas fa-credit-card" style="margin-right: 8px"></i
+                >Method
+              </th>
+              <th>
+                <i class="fas fa-info-circle" style="margin-right: 8px"></i
+                >Status
+              </th>
+              <th>
+                <i class="fas fa-comment-alt" style="margin-right: 8px"></i
+                >Reason
+              </th>
+              <th>
+                <i class="fas fa-calendar" style="margin-right: 8px"></i>Date
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for w in withdrawal_history %}
+            <tr>
+              <td class="amount-cell">₱{{ w.amount|floatformat:2 }}</td>
+              <td>
+                <span class="method-badge">
+                  {% if w.method == 'check' %}
+                  <i class="fas fa-file-invoice"></i>
+                  {% elif w.method == 'cash' %}
+                  <i class="fas fa-money-bills"></i>
+                  {% else %}
+                  <i class="fas fa-university"></i>
+                  {% endif %} {{ w.method|title }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge status-{{ w.status|lower }}">
+                  {% if w.status|lower == 'pending' %}
+                  <i class="fas fa-clock" style="margin-right: 5px"></i>
+                  {% elif w.status|lower == 'approved' %}
+                  <i class="fas fa-check" style="margin-right: 5px"></i>
+                  {% elif w.status|lower == 'rejected' %}
+                  <i class="fas fa-times" style="margin-right: 5px"></i>
+                  {% elif w.status|lower == 'completed' %}
+                  <i class="fas fa-check-double" style="margin-right: 5px"></i>
+                  {% endif %} {{ w.status|title }}
+                </span>
+              </td>
+              <td>{{ w.reason|title }}</td>
+              <td>
+                <span style="color: #666; font-size: 13px">
+                  {{ w.date_requested }}<br />
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
-      <h2 class="modal-title">Request Submitted!</h2>
-      <p class="modal-text">
-        Your withdrawal request has been successfully submitted. You will receive a confirmation email shortly and we'll process your request within 3-5 business days.
-      </p>
-      <button class="modal-btn" onclick="closeModal()">Continue</button>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">
+          <i class="fas fa-inbox"></i>
+        </div>
+        <h3 class="empty-state-title">No Withdrawal History</h3>
+        <p class="empty-state-text">
+          You haven't made any withdrawal requests yet. Your transaction history
+          will appear here once you submit your first request.
+        </p>
+      </div>
+      {% endif %}
     </div>
-  </div>
 
- <script>
-    function goBack(){
-        window.location.href="{% url 'userDashboard' %}"
-    }
-  // Form elements
-  const form = document.getElementById('withdrawalForm');
-  const amountInput = document.getElementById('amount');
-  const methodSelect = document.getElementById('method');
-  const bankDetails = document.getElementById('bankDetails');
-  const bankAccountInput = document.getElementById('bankAccount');
-  const reasonSelect = document.getElementById('reason');
-  const agreeCheckbox = document.getElementById('agreeTerms');
-  const submitBtn = document.getElementById('submitBtn');
+    <!-- Success Modal -->
+    <div id="successModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <div class="modal-icon">
+          <i class="fas fa-check"></i>
+        </div>
+        <h2 class="modal-title">Request Submitted!</h2>
+        <p class="modal-text" id="modalMessage">
+          Your withdrawal request has been successfully submitted.
+        </p>
+        <button class="modal-btn" onclick="closeModal()">Continue</button>
+      </div>
+    </div>
 
-  // Summary elements
-  const summaryAmount = document.getElementById('summaryAmount');
-  const summaryMethod = document.getElementById('summaryMethod');
-  const summaryReason = document.getElementById('summaryReason');
+    <script>
+      function goBack() {
+        window.location.href = "{% url 'userDashboard' %}";
+      }
+      // Form elements
+      const form = document.getElementById("withdrawalForm");
+      const amountInput = document.getElementById("amount");
+      const methodSelect = document.getElementById("method");
+      const bankDetails = document.getElementById("bankDetails");
+      const bankAccountInput = document.getElementById("bankAccount");
+      const reasonSelect = document.getElementById("reason");
+      const agreeCheckbox = document.getElementById("agreeTerms");
+      const submitBtn = document.getElementById("submitBtn");
 
-  // Modal
-  const modal = document.getElementById('successModal');
+      // Summary elements
+      const summaryAmount = document.getElementById("summaryAmount");
+      const summaryMethod = document.getElementById("summaryMethod");
+      const summaryReason = document.getElementById("summaryReason");
 
-  // Update summary in real-time
-  function updateSummary() {
-    // Update amount
-    const amount = amountInput.value ? parseFloat(amountInput.value) : 0;
-    summaryAmount.textContent = `₱${amount.toLocaleString('en-PH', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
+      // Modal
+      const modal = document.getElementById("successModal");
 
-    // Update method
-    const methodText = methodSelect.options[methodSelect.selectedIndex]?.text || 'Not selected';
-    summaryMethod.textContent = methodText;
+      // Update summary in real-time
+      function updateSummary() {
+        // Update amount
+        const amount = amountInput.value ? parseFloat(amountInput.value) : 0;
+        summaryAmount.textContent = `₱${amount.toLocaleString("en-PH", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`;
 
-    // Update reason
-    const reasonText = reasonSelect.options[reasonSelect.selectedIndex]?.text || 'Not selected';
-    summaryReason.textContent = reasonText;
-  }
+        // Update method
+        const methodText =
+          methodSelect.options[methodSelect.selectedIndex]?.text ||
+          "Not selected";
+        summaryMethod.textContent = methodText;
 
-  // Show/hide bank details based on method
-  methodSelect.addEventListener('change', function () {
-    if (this.value === 'bank_transfer') {
-      bankDetails.style.display = 'block';
-      bankAccountInput.required = true;
-    } else {
-      bankDetails.style.display = 'none';
-      bankAccountInput.required = false;
-      bankAccountInput.value = '';
-    }
-    updateSummary();
-    validateForm();
-  });
+        // Update reason
+        const reasonText =
+          reasonSelect.options[reasonSelect.selectedIndex]?.text ||
+          "Not selected";
+        summaryReason.textContent = reasonText;
+      }
 
-  // Validate form and enable/disable submit button
-  function validateForm() {
-    const amount = parseFloat(amountInput.value) || 0;
-    const isValidAmount = amount >= 100 && amount <= 25450;
-    const hasMethod = methodSelect.value !== '';
-    const hasReason = reasonSelect.value !== '';
-    const agreed = agreeCheckbox.checked;
-    const bankValid = methodSelect.value !== 'bank_transfer' || bankAccountInput.value.trim() !== '';
+      // Show/hide bank details based on method
+      methodSelect.addEventListener("change", function () {
+        if (this.value === "bank_transfer") {
+          bankDetails.style.display = "block";
+          bankAccountInput.required = true;
+        } else {
+          bankDetails.style.display = "none";
+          bankAccountInput.required = false;
+          bankAccountInput.value = "";
+        }
+        updateSummary();
+        validateForm();
+      });
 
-    if (isValidAmount && hasMethod && hasReason && agreed && bankValid) {
-      submitBtn.disabled = false;
-    } else {
-      submitBtn.disabled = true;
-    }
-  }
+      // Validate form and enable/disable submit button
+      function validateForm() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const isValidAmount = amount >= 100 && amount <= 25450;
+        const hasMethod = methodSelect.value !== "";
+        const hasReason = reasonSelect.value !== "";
+        const agreed = agreeCheckbox.checked;
+        const bankValid =
+          methodSelect.value !== "bank_transfer" ||
+          bankAccountInput.value.trim() !== "";
 
-  // Event listeners for live updates and validation
-  amountInput.addEventListener('input', () => {
-    updateSummary();
-    validateForm();
-  });
+        if (isValidAmount && hasMethod && hasReason && agreed && bankValid) {
+          submitBtn.disabled = false;
+        } else {
+          submitBtn.disabled = true;
+        }
+      }
 
-  reasonSelect.addEventListener('change', () => {
-    updateSummary();
-    validateForm();
-  });
+      // Event listeners for live updates and validation
+      amountInput.addEventListener("input", () => {
+        updateSummary();
+        validateForm();
+      });
 
-  bankAccountInput.addEventListener('input', validateForm);
-  agreeCheckbox.addEventListener('change', validateForm);
+      reasonSelect.addEventListener("change", () => {
+        updateSummary();
+        validateForm();
+      });
 
-  // Submit handler
-  form.addEventListener('submit', function (e) {
-    e.preventDefault(); // Prevent actual form submission
+      bankAccountInput.addEventListener("input", validateForm);
+      agreeCheckbox.addEventListener("change", validateForm);
 
-    // Final validation (optional but good practice)
-    validateForm();
+      function closeModal() {
+        document.getElementById("successModal").style.display = "none";
+        window.location.reload(); // optional: refresh after modal closes
+      }
 
-    if (!submitBtn.disabled) {
-      // Simulate successful action and show modal
-      modal.style.display = 'block'; // You can customize how your modal opens
+      // Submit handler
+      document
+        .getElementById("withdrawalForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
 
-      // Optionally reset form
-      form.reset();
-      bankDetails.style.display = 'none';
+          const amount = parseFloat(document.getElementById("amount").value);
+          const method = document.getElementById("method").value;
+          const reason = document.getElementById("reason").value;
+          const description = document.getElementById("description").value;
+
+          if (!document.getElementById("agreeTerms").checked) {
+            alert("Please agree to the terms and conditions.");
+            return;
+          }
+
+          const response = await fetch("/user/process_withdrawal/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              amount,
+              method,
+              reason,
+              description,
+            }),
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            document.getElementById("modalMessage").innerText = result.message;
+            document.getElementById("successModal").style.display = "block";
+          } else {
+            alert("❌ " + result.message);
+          }
+        });
+
+      // Optional: Close modal if needed
+      // document.getElementById('modalCloseBtn').addEventListener('click', () => {
+      //   modal.style.display = 'none';
+      // });
+
+      // Initialize summary and state
       updateSummary();
       validateForm();
-    }
-  });
 
-  // Optional: Close modal if needed
-  // document.getElementById('modalCloseBtn').addEventListener('click', () => {
-  //   modal.style.display = 'none';
-  // });
+      function toggleWithdrawalHistory() {
+        const historySection = document.querySelector(
+          ".withdrawal-history-section"
+        );
+        const button = document.getElementById("viewHistoryBtn");
+        const buttonText = button.querySelector(".btn-text");
 
-  // Initialize summary and state
-  updateSummary();
-  validateForm();
-</script>
-</body> 
+        if (historySection.classList.contains("visible")) {
+          // Hide history
+          historySection.classList.remove("visible");
+          button.classList.remove("history-visible");
+          buttonText.textContent = "View Withdrawal History";
+
+          // Scroll back to button smoothly
+          button.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        } else {
+          // Show history
+          historySection.classList.add("visible");
+          button.classList.add("history-visible");
+          buttonText.textContent = "Hide Withdrawal History";
+
+          // Wait for animation to complete, then scroll to history
+          setTimeout(() => {
+            historySection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+              inline: "nearest",
+            });
+          }, 300);
+        }
+      }
+
+      // Optional: Add some entrance animation when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        const button = document.getElementById("viewHistoryBtn");
+        if (button) {
+          // Add a subtle entrance animation
+          setTimeout(() => {
+            button.style.opacity = "1";
+            button.style.transform = "translateY(0)";
+          }, 500);
+
+          // Initially hide the button
+          button.style.opacity = "0";
+          button.style.transform = "translateY(20px)";
+          button.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+        }
+      });
+    </script>
+  </body>
 </html>

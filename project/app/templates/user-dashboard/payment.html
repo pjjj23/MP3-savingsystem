@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Method | Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background-color: #f0f2f5;
+        overflow-x: hidden;
+      }
+
+      .app-container {
+        width: 100%;
+        min-height: 100vh;
+        background-color: #fff;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        display: flex;
+        position: relative;
+      }
+
+      .sidebar {
+        width: 300px;
+        background-color: #fff;
+        border-right: 1px solid #e9edef;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow: hidden;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+      }
+
+      .sidebar-overlay.show {
+        display: block;
+      }
+
+      .profile-section {
+        background-color: #1f5ca7;
+        color: white;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .menu-icon {
+        align-self: flex-start;
+        margin-bottom: 15px;
+        cursor: pointer;
+        font-size: 20px;
+        padding: 5px;
+      }
+
+      .mobile-menu-btn {
+        display: none;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1001;
+        background-color: #1f5ca7;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .profile-pic {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 10px;
+        background-color: #ccc;
+      }
+
+      .username {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 5px;
+      }
+
+      .coins {
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        color: #f1c40f;
+      }
+
+      .navigation-section {
+        padding: 15px 10px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .nav-title {
+        font-size: 14px;
+        color: #8a8a8a;
+        margin-bottom: 15px;
+        padding-left: 10px;
+      }
+
+      .nav-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+
+      .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background-color: #f5f7fb;
+        border-radius: 12px;
+        padding: 15px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-decoration: none;
+        color: black;
+      }
+
+      .nav-item:hover {
+        background-color: #e8edf5;
+      }
+
+      .nav-item.active {
+        background-color: #1f5ca7;
+        color: white;
+      }
+
+      .nav-icon {
+        font-size: 24px;
+        margin-bottom: 5px;
+      }
+
+      .nav-label {
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .admin-section {
+        margin-top: auto;
+        padding: 15px 10px;
+        flex-shrink: 0;
+      }
+
+      .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 25px;
+        background-color: #f8f9fa;
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .page-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 15px;
+      }
+
+      .back-btn {
+        background-color: #1f5ca7;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.3s;
+      }
+
+      .back-btn:hover {
+        background-color: #174a94;
+      }
+
+      .page-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .payment-method-container {
+        background: linear-gradient(135deg, #ff8c00, #ffa500);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(255, 140, 0, 0.3);
+        overflow-y: scroll;
+      }
+
+      .payment-method-container::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 0%,
+          transparent 70%
+        );
+        animation: shimmer 3s infinite;
+      }
+
+      @keyframes shimmer {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .payment-header {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .payment-title {
+        font-size: 36px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        margin-bottom: 10px;
+        letter-spacing: 2px;
+      }
+
+      .payment-methods-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .payment-method-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        backdrop-filter: blur(10px);
+      }
+
+      .payment-method-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      }
+
+      .method-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        gap: 15px;
+      }
+
+      .method-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        flex-shrink: 0;
+      }
+
+      .method-icon.gcash {
+        background: linear-gradient(135deg, #004cff, #0066ff);
+      }
+
+      .method-icon.paymaya {
+        background: linear-gradient(135deg, #00d4ff, #0099cc);
+      }
+
+      .method-icon.palawan {
+        background: linear-gradient(135deg, #ff6b35, #ff8c42);
+      }
+
+      .method-icon.bank {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+      }
+
+      .method-icon.gotyme {
+        background: linear-gradient(135deg, #ffd700, #ffb347);
+      }
+
+      .method-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .method-details {
+        margin-left: 15px;
+      }
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .detail-row:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+
+      .detail-label {
+        font-weight: 500;
+        color: #555;
+        font-size: 14px;
+      }
+
+      .detail-value {
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+        font-family: monospace;
+      }
+
+      .copy-btn {
+        background-color: #1f5ca7;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        margin-left: 10px;
+        transition: background-color 0.3s;
+      }
+
+      .copy-btn:hover {
+        background-color: #174a94;
+      }
+
+      .gotyme-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: linear-gradient(135deg, #fff9e6, #fff3d3);
+        border-radius: 15px;
+        border: 2px solid #ffd700;
+      }
+
+      .gotyme-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+      }
+
+      .gotyme-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .notification-card {
+        background: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+        border-left: 4px solid #2ecc71;
+        padding: 20px;
+        border-radius: 12px;
+        margin-top: 30px;
+      }
+
+      .notification-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .notification-icon {
+        color: #2ecc71;
+        font-size: 20px;
+      }
+
+      .notification-title {
+        font-weight: 600;
+        color: #333;
+        font-size: 16px;
+      }
+
+      .notification-text {
+        color: #555;
+        line-height: 1.6;
+        font-size: 14px;
+      }
+
+      @media (min-width: 768px) {
+        .sidebar {
+          position: static;
+          transform: translateX(0);
+          height: 100vh;
+        }
+
+        .mobile-menu-btn {
+          display: none;
+        }
+
+        .main-content {
+          margin-left: 0;
+          padding: 25px;
+        }
+
+        .payment-methods-grid {
+          grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+          gap: 25px;
+        }
+      }
+
+      @media (max-width: 767px) {
+        .mobile-menu-btn {
+          display: block;
+        }
+
+        .main-content {
+          width: 100%;
+          padding: 80px 15px 25px 15px;
+          height: 100vh;
+        }
+
+        .payment-title {
+          font-size: 28px;
+        }
+
+        .payment-method-card {
+          padding: 20px;
+        }
+
+        .method-header {
+          flex-direction: column;
+          text-align: center;
+          gap: 10px;
+        }
+
+        .method-details {
+          margin-left: 0;
+        }
+
+        .detail-row {
+          flex-direction: column;
+          gap: 5px;
+          align-items: flex-start;
+        }
+
+        .nav-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .nav-item {
+          flex-direction: row;
+          justify-content: flex-start;
+          gap: 15px;
+          padding: 15px 20px;
+        }
+
+        .nav-icon {
+          margin-bottom: 0;
+          font-size: 20px;
+        }
+
+        .nav-label {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <div class="app-container">
+      <!-- Sidebar -->
+      <div class="sidebar" id="sidebar">
+        <div class="profile-section">
+          <div class="menu-icon" onclick="toggleDropdown()">
+            <i class="fas fa-bars"></i>
+          </div>
+          <div>
+            <img
+              src="https://firebasestorage.googleapis.com/v0/b/ctuacaccreditedboardinghouse.appspot.com/o/AlayTrabaho%2Fdefault-profileimg.png?alt=media&token=a150b652-5c6c-46e9-a6ee-895576a83d98"
+              alt="Profile"
+              class="profile-pic"
+            />
+          </div>
+          <div class="username">Contributor</div>
+          <div class="coins">
+            <span>Dashboard</span>
+          </div>
+        </div>
+
+        <div class="navigation-section">
+          <div class="nav-title">User Navigation</div>
+          <div class="nav-grid">
+            <a href="#" class="nav-item" onclick="goBack()">
+              <i class="fas fa-dashboard nav-icon"></i>
+              <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="#" class="nav-item">
+              <i class="fas fa-user nav-icon"></i>
+              <span class="nav-label">Profile</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="admin-section">
+          <div class="nav-title"></div>
+          <div class="nav-grid">
+            <a href="#" class="nav-item">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+              <span class="nav-label">Logout</span>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <div class="page-header">
+          <button class="back-btn" onclick="goBack()">
+            <i class="fas fa-arrow-left"></i>
+            Back to Dashboard
+          </button>
+          <h1 class="page-title">Payment Methods</h1>
+        </div>
+
+        <div class="payment-method-container">
+          <div class="payment-header">
+            <h1 class="payment-title">PAYMENT METHOD</h1>
+          </div>
+
+          <div class="payment-methods-grid">
+            <!-- GCASH -->
+            <div class="payment-method-card">
+              <div class="method-header">
+                <div class="method-icon gcash">
+                  <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div class="method-title">GCASH</div>
+              </div>
+              <div class="method-details">
+                <div class="detail-row">
+                  <span class="detail-label">Name:</span>
+                  <span class="detail-value">
+                    Jose Romulo Jr Cabua
+                    <button
+                      class="copy-btn"
+                      onclick="copyToClipboard('Jose Romulo Jr Cabua')"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Number:</span>
+                  <span class="detail-value">
+                    09057452026
+                    <button
+                      class="copy-btn"
+                      onclick="copyToClipboard('09057452026')"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Alternative:</span>
+                  <span class="detail-value">
+                    09940266845
+                    <button
+                      class="copy-btn"
+                      onclick="copyToClipboard('09940266845')"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PAYMAYA -->
+            <div class="payment-method-card">
+              <div class="method-header">
+                <div class="method-icon paymaya">
+                  <i class="fas fa-credit-card"></i>
+                </div>
+                <div class="method-title">PAYMAYA</div>
+              </div>
+              <div class="method-details">
+                <div class="detail-row">
+                  <span class="detail-label">Name:</span>
+                  <span class="detail-value">
+                    Jose Romulo Jr Cabua
+                    <button
+                      class="copy-btn"
+                      onclick="copyToClipboard('Jose Romulo Jr Cabua')"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Number:</span>
+                  <span class="detail-value">
+                    09057452026
+                    <button
+                      class="copy-btn"
+                      onclick="copyToClipboard('09057452026')"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PALAWAN PAY -->
+            <div class="payment-method-card">
+              <div class="method-header">
+                <div class="method-icon palawan">
+                  <i class="fas fa-store"></i>
+                </div>
+                <div class="method-title">CASH-IN SA PALAWAN PAY</div>
+              </div>
+              <div class="method-details">
+                <div class="detail-row">
+                  <span class="detail-label">Location:</span>
+                  <span class="detail-value">Any Palawan Pawnshop</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Name:</span>
+                  <span class="detail-value">
+                    Jose Romulo Jr Cabua
+                    <button
+                      class="copy-btn"
+                      onclick="copyToClipboard('Jose Romulo Jr Cabua')"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Number:</span>
+                  <span class="detail-value">
+                    09057452026
+                    <button
+                      class="copy-btn"
+                      onclick="copyToClipboard('09057452026')"
+                    >
+                      <i class="fas fa-copy"></i>
+                    </button>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- BANK ACCOUNTS -->
+            <div class="payment-method-card">
+              <div class="method-header">
+                <div class="method-icon bank">
+                  <i class="fas fa-university"></i>
+                </div>
+                <div class="method-title">BANK ACCOUNTS</div>
+              </div>
+              <div class="method-details">
+                <div style="margin-bottom: 20px">
+                  <h4 style="color: #333; margin-bottom: 10px">BDO Unibank</h4>
+                  <div class="detail-row">
+                    <span class="detail-label">Account Name:</span>
+                    <span class="detail-value">
+                      JOSE ROMULO N. CABUA JR
+                      <button
+                        class="copy-btn"
+                        onclick="copyToClipboard('JOSE ROMULO N. CABUA JR')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Account Number:</span>
+                    <span class="detail-value">
+                      002460260683
+                      <button
+                        class="copy-btn"
+                        onclick="copyToClipboard('002460260683')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 style="color: #333; margin-bottom: 10px">LAND BANK</h4>
+                  <div class="detail-row">
+                    <span class="detail-label">Account Name:</span>
+                    <span class="detail-value">
+                      JOSE ROMULO N. CABUA JR
+                      <button
+                        class="copy-btn"
+                        onclick="copyToClipboard('JOSE ROMULO N. CABUA JR')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="detail-label">Account Number:</span>
+                    <span class="detail-value">
+                      1406 0928 75
+                      <button
+                        class="copy-btn"
+                        onclick="copyToClipboard('1406092875')"
+                      >
+                        <i class="fas fa-copy"></i>
+                      </button>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GoTyme Section -->
+          <div class="gotyme-section">
+            <div class="gotyme-header">
+              <div class="method-icon gotyme">
+                <i class="fas fa-university"></i>
+              </div>
+              <div class="gotyme-title">GoTyme Bank</div>
+            </div>
+            <div class="method-details">
+              <div class="detail-row">
+                <span class="detail-label">Account Name:</span>
+                <span class="detail-value">Jose Romulo Jr Cabua</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Account Number:</span>
+                <span class="detail-value">0118 0814 2633</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="notification-card">
+          <div class="notification-header">
+            <i class="fas fa-info-circle notification-icon"></i>
+            <span class="notification-title">Payment Instructions</span>
+          </div>
+          <p class="notification-text">
+            Please use the payment methods above to make your contributions or
+            payments. After making a payment, please keep your receipt and
+            contact the administrator for confirmation. All transactions are
+            processed securely and your payment details will be recorded for
+            your records.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.querySelector(".sidebar-overlay");
+
+        sidebar.classList.toggle("open");
+        overlay.classList.toggle("show");
+      }
+
+      function closeSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.querySelector(".sidebar-overlay");
+
+        sidebar.classList.remove("open");
+        overlay.classList.remove("show");
+      }
+
+      function goBack() {
+        // This would typically navigate back to the dashboard
+        // For demo purposes, we'll just show an alert
+        alert("Navigating back to dashboard...");
+        // In a real application, you would use:
+        // window.history.back(); or window.location.href = '/dashboard';
+      }
+
+      function copyToClipboard(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(function () {
+            // Create a temporary notification
+            const notification = document.createElement("div");
+            notification.textContent = "Copied to clipboard!";
+            notification.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #2ecc71;
+          color: white;
+          padding: 10px 20px;
+          border-radius: 8px;
+          font-size: 14px;
+          z-index: 10000;
+          animation: slideIn 0.3s ease;
+        `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+              notification.remove();
+            }, 2000);
+          })
+          .catch(function (err) {
+            console.error("Could not copy text: ", err);
+            alert("Failed to copy to clipboard");
+          });
+      }
+
+      // Add CSS animation for notification
+      const style = document.createElement("style");
+      style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+    `;
+      document.head.appendChild(style);
+
+      // Close sidebar when window is resized to desktop
+      window.addEventListener("resize", function () {
+        if (window.innerWidth >= 768) {
+          closeSidebar();
+        }
+      });
+
+      // Navigation item functionality
+      document.querySelectorAll(".nav-item").forEach((item) => {
+        item.addEventListener("click", function (e) {
+          e.preventDefault();
+
+          // Remove active class from all nav items
+          document.querySelectorAll(".nav-item").forEach((el) => {
+            el.classList.remove("active");
+          });
+
+          // Add active class to clicked item
+          this.classList.add("active");
+
+          // Close sidebar on mobile after selection
+          if (window.innerWidth < 768) {
+            closeSidebar();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
