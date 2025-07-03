@@ -241,6 +241,56 @@ def userDashboard(request):
     }
     return render(request, 'user-dashboard/index.html', context)
 
+def api_transaction_records(request):
+    email = request.session.get('email')
+    if not email:
+        return JsonResponse([], safe=False)
+
+    transactions = []
+
+    # Deposits
+    savings = db.child("savings").get()
+    if savings.each():
+        for item in savings.each():
+            data = item.val()
+            if data.get("user_id") == email:
+                transactions.append({
+                    "date": data.get("date_saved"),
+                    "type": "Deposit",
+                    "amount": float(data.get("amount", 0)),
+                    "status": "Completed"
+                })
+
+    # Withdrawals
+    withdrawals = db.child("withdrawals").get()
+    if withdrawals.each():
+        for item in withdrawals.each():
+            data = item.val()
+            if data.get("user_id") == email:
+                transactions.append({
+                    "date": data.get("date_requested"),
+                    "type": "Withdrawal",
+                    "amount": float(data.get("amount", 0)),
+                    "status": data.get("status", "Pending").capitalize()
+                })
+
+    # Loans
+    loans = db.child("loan_applications").get()
+    if loans.each():
+        for item in loans.each():
+            data = item.val()
+            if data.get("user_id") == email:
+                transactions.append({
+                    "date": data.get("date_requested", "N/A"),
+                    "type": "Loan",
+                    "amount": float(data.get("loan_amount", 0)),
+                    "status": data.get("status", "Pending").capitalize()
+                })
+
+    # Sort by date descending
+    transactions.sort(key=lambda x: x["date"], reverse=True)
+
+    return JsonResponse(transactions, safe=False)
 
 def deposit(request):
     email = request.session.get('email')   
@@ -413,7 +463,7 @@ def check_withdrawals_and_notify():
             except Exception:
                 continue
 
-        if datetime.now() - date_requested >= timedelta(hours=24):
+        if datetime.now() - date_requested >= timedelta(seconds=5):
             user_email = withdrawal.get("user_id")
 
             # Update status
@@ -421,17 +471,69 @@ def check_withdrawals_and_notify():
                 "status": "ready"
             })
 
-            # Send email
+            # Subtract the amount from user balance
+            users = db.child("userRegistrations").get()
+            user_key = None
+            current_balance = 0
+
+            for user in users.each():
+                user_data = user.val()
+                if user_data.get("email") == user_email:
+                    user_key = user.key()
+                    current_balance = float(user_data.get("balance", 0))
+                    break
+
+            if user_key:
+                amount = float(withdrawal.get("amount", 0))
+                new_balance = current_balance - amount
+                db.child("userRegistrations").child(user_key).update({
+                    "balance": new_balance
+                })
+
+            # Get user's first and last name from userRegistrations
+            user_data = None
+            all_users = db.child("userRegistrations").get()
+            if all_users.each():
+                for user in all_users.each():
+                    if user.val().get("email") == user_email:
+                        user_data = user.val()
+                        break
+
+            # Fetch user's name and format amount
+            first_name = user_data.get("first_name", "Valued") if user_data else "Valued"
+            last_name = user_data.get("last_name", "User") if user_data else "User"
+            amount = withdrawal.get("amount", 0)
+
+            # HTML message
+            html_message = f"""
+            <html>
+            <body style="font-family: Arial, sans-serif; background-color: #f0f4f8; padding: 20px;">
+                <div style="max-width: 600px; margin: auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <h2 style="color: #007BFF;">Withdrawal Ready</h2>
+                <p>Hi <strong>{first_name} {last_name}</strong>,</p>
+                <p>Your withdrawal request of <strong style="color: #007BFF;">₱{float(amount):,.2f}</strong> has been processed and is now <strong>ready</strong>.</p>
+                <p>Please proceed to the account or method you selected to receive your funds.</p>
+                <br>
+                <p style="font-size: 14px; color: #666;">Thank you for using our service.</p>
+                <p style="font-size: 14px; color: #666;">— Your Savings System Team</p>
+                </div>
+            </body>
+            </html>
+            """
+
+            # Send styled email
             try:
                 send_mail(
-                    'Withdrawal Ready',
-                    'Your withdrawal request is now ready. You may proceed to receive the funds.',
-                    'no-reply@yourdomain.com',
-                    [user_email],
+                    subject='Withdrawal Ready',
+                    message='Your withdrawal is ready.',  # fallback for non-HTML clients
+                    from_email='no-reply@yourdomain.com',
+                    recipient_list=[user_email],
+                    html_message=html_message,
                     fail_silently=False
                 )
             except Exception as e:
                 print(f"Email send failed: {str(e)}")
+
 
 def withdrawal(request):
     check_withdrawals_and_notify()

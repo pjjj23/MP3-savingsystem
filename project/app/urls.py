@@ -14,6 +14,7 @@ urlpatterns=[
 
     #User-dashboard
     path('user/dashboard/', views.userDashboard, name='userDashboard'),
+    path("api/transaction-records/", views.api_transaction_records, name="api_transaction_records"),
     path('api/interest-records/', views.get_interest_records, name='get_interest_records'),
     path('user/deposit/', views.deposit, name='deposit'),
     path('user/process_deposit/', views.process_deposit, name='process_deposit'),

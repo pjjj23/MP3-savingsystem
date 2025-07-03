@@ -1100,11 +1100,11 @@
             <div class="stat-header">
               <div>
                 <div class="stat-title">Balance</div>
-                <div class="stat-value">₱{{ balance|floatformat:2 }}</div> 
+                <div class="stat-value">₱{{ balance|floatformat:2 }}</div>
                 <div class="stat-change positive">
                   Hi {{ first_name }}, this is your current balance.
                 </div>
-              </div> 
+              </div>
               <div class="stat-icon blue">
                 <i class="fa-solid fa-money-bills"></i>
               </div>
@@ -1115,7 +1115,7 @@
             <div class="stat-header">
               <div>
                 <div class="stat-title">Total Deposits</div>
-                <div class="stat-value">{{ deposit_count }}</div> 
+                <div class="stat-value">{{ deposit_count }}</div>
               </div>
               <div class="stat-icon green">
                 <i class="fa-solid fa-money-bill-transfer"></i>
@@ -1213,7 +1213,20 @@
                     </tr>
                   </thead>
                   <tbody id="recordsTableBody">
-                    <!-- Data will be populated by JavaScript -->
+                    {% for record in transaction_records %}
+                    <tr>
+                      <td>{{ record.date }}</td>
+                      <td>{{ record.type }}</td>
+                      <td>₱{{ record.amount|floatformat:2 }}</td>
+                      <td>{{ record.status }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                      <td colspan="4" style="text-align: center">
+                        No transaction records found.
+                      </td>
+                    </tr>
+                    {% endfor %}
                   </tbody>
                 </table>
               </div>
@@ -1261,56 +1274,38 @@
         loadInterestData();
       });
 
-      const recordsData = [
-        {
-          date: "2024-12-16",
-          type: "Deposit",
-          amount: 500.0,
-          status: "completed",
-        },
-        {
-          date: "2024-12-15",
-          type: "Withdrawal",
-          amount: -200.0,
-          status: "completed",
-        },
-        {
-          date: "2024-12-14",
-          type: "Deposit",
-          amount: 750.0,
-          status: "completed",
-        },
-        {
-          date: "2024-12-12",
-          type: "Loan Payment",
-          amount: -300.0,
-          status: "completed",
-        },
-        {
-          date: "2024-12-10",
-          type: "Deposit",
-          amount: 1000.0,
-          status: "completed",
-        },
-        {
-          date: "2024-12-08",
-          type: "Withdrawal",
-          amount: -150.0,
-          status: "pending",
-        },
-        {
-          date: "2024-12-05",
-          type: "Deposit",
-          amount: 600.0,
-          status: "completed",
-        },
-        {
-          date: "2024-12-03",
-          type: "Interest",
-          amount: 125.5,
-          status: "completed",
-        },
-      ];
+      let recordsData = [];
+
+      function loadTransactionData() {
+        fetch("/api/transaction-records/")
+          .then((response) => response.json())
+          .then((data) => {
+            recordsData = data;
+            updateTransactionTable();
+          })
+          .catch((error) => {
+            console.error("Failed to load transaction data:", error);
+          });
+      }
+
+      function updateTransactionTable() {
+        renderTable(
+          recordsData,
+          "recordsTableBody",
+          currentRecordsPage,
+          "records"
+        );
+        renderPagination(
+          recordsData,
+          "recordsPagination",
+          currentRecordsPage,
+          "records"
+        );
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        loadTransactionData();
+      });
 
       // Pagination settings
       const itemsPerPage = 5;
