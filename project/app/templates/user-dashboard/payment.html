@@ -836,12 +836,8 @@
         overlay.classList.remove("show");
       }
 
-      function goBack() {
-        // This would typically navigate back to the dashboard
-        // For demo purposes, we'll just show an alert
-        alert("Navigating back to dashboard...");
-        // In a real application, you would use:
-        // window.history.back(); or window.location.href = '/dashboard';
+      function goBack() { 
+        window.location.href="{% url 'userDashboard' %}"
       }
 
       function copyToClipboard(text) {
@@ -901,8 +897,7 @@
 
       // Navigation item functionality
       document.querySelectorAll(".nav-item").forEach((item) => {
-        item.addEventListener("click", function (e) {
-          e.preventDefault();
+        item.addEventListener("click", function (e) { 
 
           // Remove active class from all nav items
           document.querySelectorAll(".nav-item").forEach((el) => {
