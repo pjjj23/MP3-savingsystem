@@ -915,7 +915,7 @@
               <i class="fas fa-dashboard nav-icon"></i>
               <span class="nav-label">Dashboard</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{% url 'user_profile' %}" class="nav-item">
               <i class="fas fa-user nav-icon"></i>
               <span class="nav-label">Profile</span>
             </a>
@@ -1034,12 +1034,12 @@
                     >
                     <select class="form-select" id="loanTerm">
                       <option value="">Select term</option>
+                      <option value="2">2 months</option>
+                      <option value="4">4 months</option>
                       <option value="6">6 months</option>
+                      <option value="8">8 months</option>
+                      <option value="10">10 months</option>
                       <option value="12">1 year</option>
-                      <option value="24">2 years</option>
-                      <option value="36">3 years</option>
-                      <option value="48">4 years</option>
-                      <option value="60">5 years</option>
                     </select>
                     <div class="error-message" id="loanTermError">
                       Please select a loan term

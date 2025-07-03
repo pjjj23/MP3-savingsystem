@@ -499,6 +499,16 @@
                     </a>
                 </div>
                 <div class="nav-item">
+            <a
+              href="{% url 'user_approval' %}"
+              class="nav-link"
+              data-page="user_management"
+            >
+              <i class="fas fa-users"></i>
+              User Management
+            </a>
+          </div>
+                <div class="nav-item">
                     <a href="{% url 'admin_savings' %}" class="nav-link" data-page="admin_savings_view">
                         <i class="fas fa-piggy-bank"></i>
                     Saving Approvals
@@ -587,8 +597,9 @@
                 <div class="stat-card">
                     <div class="stat-header">
                         <div>
-                            <div class="stat-number">{{ total_users }}</div>
-                            <div class="stat-label">Active Users</div> 
+                            <div class="stat-number" style="color: red">{{ pending_users }} pending</div>
+                            <div class="stat-number" style="color: rgb(49, 201, 49)">{{ approved_users }} approved</div>
+                            <div class="stat-label">{{ total_users }} Total Users</div> 
                         </div>
                         <div class="stat-icon users">
                             <i class="fas fa-users"></i>
@@ -604,6 +615,11 @@
                     Quick Actions
                 </h2>
                 <div class="actions-grid">
+                    <a href="{% url 'reports' %}" class="action-btn" data-action="generate_report">
+                        <i class="fa-solid fa-person-circle-check"></i>
+                        <h3>Approve Users</h3>
+                        <p>Approve new registered users to let them use the system.</p>
+                    </a>
                     <a href="{% url 'admin_savings' %}" class="action-btn" data-action="admin_savings_view">
                         <i class="fas fa-check-circle"></i>
                         <h3>Approve Savings</h3>
@@ -615,7 +631,7 @@
                         <p>Review and approve pending loan applications</p>
                     </a> 
                     <a href="{% url 'reports' %}" class="action-btn" data-action="generate_report">
-                        <i class="fas fa-file-chart-pie"></i>
+                        <i class="fa-solid fa-file-pdf"></i>
                         <h3>Generate Report</h3>
                         <p>Create financial and activity reports, Download through PDF</p>
                     </a>
@@ -676,8 +692,7 @@
             
             // Handle navigation clicks
             navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
+                link.addEventListener('click', function(e) { 
                     
                     // Remove active class from all links
                     navLinks.forEach(l => l.classList.remove('active'));

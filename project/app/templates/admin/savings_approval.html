@@ -641,6 +641,16 @@
             </a>
           </div>
           <div class="nav-item">
+            <a
+              href="{% url 'user_approval' %}"
+              class="nav-link"
+              data-page="user_management"
+            >
+              <i class="fas fa-users"></i>
+              User Management
+            </a>
+          </div>
+          <div class="nav-item">
             <a href="#" class="nav-link active" data-page="admin_savings_view">
               <i class="fas fa-piggy-bank"></i>
               Saving Approvals
@@ -832,8 +842,7 @@
     // Navigation functionality
     const navLinks = document.querySelectorAll(".nav-link");
     navLinks.forEach((link) => {
-      link.addEventListener("click", function (e) {
-        e.preventDefault();
+      link.addEventListener("click", function (e) { 
         navLinks.forEach((l) => l.classList.remove("active"));
         this.classList.add("active");
         const page = this.getAttribute("data-page");

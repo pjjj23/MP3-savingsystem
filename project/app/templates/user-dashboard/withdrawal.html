@@ -1061,7 +1061,7 @@
               <i class="fas fa-dashboard nav-icon"></i>
               <span class="nav-label">Dashboard</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="{% url 'user_profile' %}" class="nav-item">
               <i class="fas fa-user nav-icon"></i>
               <span class="nav-label">Profile</span>
             </a>
@@ -1149,7 +1149,8 @@
                   required
                 >
                   <option value="">Select withdrawal method</option>
-                  <option value="check">Check Pickup</option>
+                  <option value="gcash">G-Cash</option>
+                  <option value="paymaya">Paymaya</option> 
                   <option value="cash">Cash Pickup</option>
                 </select>
                 <div class="error-message" id="methodError">

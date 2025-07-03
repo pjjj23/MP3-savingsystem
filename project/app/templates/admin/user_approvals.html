@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Success Shared Solution - Loan Approvals</title>
+    <title>Success Shared Solution - User Management</title>
     <link
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
       rel="stylesheet"
@@ -228,7 +228,7 @@
       .rejected {
         color: #e74c3c;
       }
-      .total-amount {
+      .total-users {
         color: #667eea;
       }
 
@@ -283,13 +283,13 @@
       }
 
       /* Custom Table */
-      .loans-table {
+      .users-table {
         width: 100%;
         border-collapse: collapse;
         margin-top: 1rem;
       }
 
-      .loans-table thead {
+      .users-table thead {
         background: linear-gradient(
           135deg,
           rgba(102, 126, 234, 0.1),
@@ -297,14 +297,14 @@
         );
       }
 
-      .loans-table th,
-      .loans-table td {
+      .users-table th,
+      .users-table td {
         padding: 1rem;
         text-align: left;
         border-bottom: 1px solid rgba(0, 0, 0, 0.1);
       }
 
-      .loans-table th {
+      .users-table th {
         font-weight: 600;
         color: #333;
         font-size: 0.95rem;
@@ -312,22 +312,40 @@
         letter-spacing: 0.5px;
       }
 
-      .loans-table tbody tr {
+      .users-table tbody tr {
         transition: all 0.3s ease;
       }
 
-      .loans-table tbody tr:hover {
+      .users-table tbody tr:hover {
         background: rgba(102, 126, 234, 0.05);
         transform: scale(1.01);
       }
 
-      .loan-amount {
+      .name-cell {
         font-weight: 600;
-        color: #667eea;
-        font-size: 1.1rem;
+        color: #333;
+        font-size: 1rem;
       }
 
-      .loan-type {
+      .email-cell {
+        font-weight: 500;
+        color: #667eea;
+        font-size: 0.95rem;
+      }
+
+      .balance-cell {
+        font-weight: 600;
+        color: #27ae60;
+        font-size: 1rem;
+      }
+
+      .interest-cell {
+        font-weight: 600;
+        color: #e67e22;
+        font-size: 1rem;
+      }
+
+      .status-badge {
         display: inline-block;
         padding: 0.25rem 0.75rem;
         border-radius: 20px;
@@ -337,37 +355,31 @@
         letter-spacing: 0.5px;
       }
 
-      .loan-type.personal {
-        background: rgba(52, 152, 219, 0.1);
-        color: #3498db;
+      .status-badge.pending {
+        background: rgba(243, 156, 18, 0.1);
+        color: #f39c12;
       }
 
-      .loan-type.business {
-        background: rgba(46, 204, 113, 0.1);
-        color: #2ecc71;
+      .status-badge.approved {
+        background: rgba(39, 174, 96, 0.1);
+        color: #27ae60;
       }
 
-      .loan-type.emergency {
+      .status-badge.rejected {
         background: rgba(231, 76, 60, 0.1);
         color: #e74c3c;
       }
 
-      .loan-term {
-        font-weight: 500;
+      .date-cell {
         color: #666;
-      }
-
-      .loan-purpose {
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        font-size: 0.9rem;
       }
 
       /* Action Buttons */
       .action-buttons {
         display: flex;
         gap: 0.5rem;
+        align-items: center;
       }
 
       .btn {
@@ -404,14 +416,13 @@
       }
 
       .btn-view {
-        background: rgba(102, 126, 234, 0.1);
-        color: #667eea;
-        border: 2px solid rgba(102, 126, 234, 0.2);
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
       }
 
       .btn-view:hover {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3);
       }
 
       /* Modal Styles */
@@ -483,6 +494,17 @@
         line-height: 1.6;
       }
 
+      .user-details {
+        background: rgba(102, 126, 234, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+      }
+
+      .user-details strong {
+        color: #333;
+      }
+
       .modal-actions {
         display: flex;
         gap: 1rem;
@@ -515,8 +537,8 @@
           overflow-x: auto;
         }
 
-        .loans-table {
-          min-width: 800px;
+        .users-table {
+          min-width: 900px;
         }
       }
 
@@ -587,6 +609,33 @@
       .summary-card:nth-child(4) {
         animation-delay: 0.3s;
       }
+
+      /* Success notification */
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transform: translateX(400px);
+        transition: all 0.3s ease;
+        z-index: 2000;
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification.error {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+      }
+
+      .notification.info {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+      }
     </style>
   </head>
   <body>
@@ -600,7 +649,11 @@
 
         <nav class="nav-menu">
           <div class="nav-item">
-            <a href="{% url 'admin_dashboard' %}" class="nav-link" data-page="dashboard">
+            <a
+              href="{% url 'admin_dashboard' %}"
+              class="nav-link"
+              data-page="dashboard"
+            >
               <i class="fas fa-tachometer-alt"></i>
               Dashboard
             </a>
@@ -608,7 +661,7 @@
           <div class="nav-item">
             <a
               href="{% url 'user_approval' %}"
-              class="nav-link"
+              class="nav-link active"
               data-page="user_management"
             >
               <i class="fas fa-users"></i>
@@ -616,13 +669,21 @@
             </a>
           </div>
           <div class="nav-item">
-            <a href="#" class="nav-link" data-page="admin_savings_view">
+            <a
+              href="{% url 'admin_savings' %}"
+              class="nav-link"
+              data-page="admin_savings_view"
+            >
               <i class="fas fa-piggy-bank"></i>
               Saving Approvals
             </a>
           </div>
           <div class="nav-item">
-            <a href="#" class="nav-link active" data-page="loan_approvals">
+            <a
+              href="{% url 'loan_approvals' %}"
+              class="nav-link"
+              data-page="loan_approvals"
+            >
               <i class="fas fa-hand-holding-usd"></i>
               Loan Approvals
             </a>
@@ -634,7 +695,11 @@
             </a>
           </div>
           <div class="nav-item">
-            <a href="{% url 'admin_logout' %}" class="nav-link" data-page="logout">
+            <a
+              href="{% url 'admin_logout' %}"
+              class="nav-link"
+              data-page="logout"
+            >
               <i class="fas fa-sign-out-alt"></i>
               Logout
             </a>
@@ -648,9 +713,9 @@
         <div class="header">
           <div class="header-top">
             <div>
-              <h1 class="page-title">Loan Approvals</h1>
+              <h1 class="page-title">User Management</h1>
               <p class="page-subtitle">
-                Review and approve pending loan applications
+                Manage user accounts and approve pending registrations
               </p>
             </div>
             <a href="{% url 'admin_dashboard' %}" class="back-btn" onclick="goBack()">
@@ -663,32 +728,36 @@
         <!-- Stats Summary -->
         <div class="stats-summary">
           <div class="summary-card">
-            <div class="summary-number pending">{{ total_pending }}</div>
-            <div class="summary-label">Pending Applications</div>
+            <div class="summary-number pending" id="pendingCount">0</div>
+            <div class="summary-label">Pending Approvals</div>
           </div>
           <div class="summary-card">
-            <div class="summary-number approved">{{ total_approved }}</div>
-            <div class="summary-label">Approved Today</div>
+            <div class="summary-number approved" id="approvedCount">0</div>
+            <div class="summary-label">Approved Users</div>
           </div>
           <div class="summary-card">
-            <div class="summary-number rejected">{{ total_rejected }}</div>
-            <div class="summary-label">Rejected Today</div>
-          </div> 
+            <div class="summary-number rejected" id="rejectedCount">0</div>
+            <div class="summary-label">Rejected Users</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-number total-users" id="totalUsersCount">0</div>
+            <div class="summary-label">Total Users</div>
+          </div>
         </div>
 
         <!-- Table Container -->
         <div class="table-container">
           <div class="table-header">
             <h2 class="table-title">
-              <i class="fas fa-list-alt"></i>
-              Pending Loan Applications
+              <i class="fas fa-users"></i>
+              Pending User Accounts
             </h2>
             <div class="filter-controls">
-              <select class="filter-select" id="typeFilter">
-                <option value="">All Types</option>
-                <option value="personal">Personal</option>
-                <option value="business">Business</option>
-                <option value="emergency">Emergency</option>
+              <select class="filter-select" id="statusFilter">
+                <option value="">All Status</option>
+                <option value="pending" selected>Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
               </select>
               <input
                 type="text"
@@ -699,85 +768,29 @@
             </div>
           </div>
 
-          <table class="loans-table" id="loansTable">
+          <table class="users-table" id="usersTable">
             <thead>
               <tr>
-                <th>Applicant</th>
-                <th>Type</th>
-                <th>Amount</th>
-                <th>Term</th>
-                <th>Purpose</th>
-                <th>Applied Date</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Date Joined</th>
+                <th>Balance</th>
+                <th>Interest</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
-            <tbody>
-              <!-- Sample loan applications -->
-              {% for loan in pending_loans %}
-              <tr data-type="{{ loan.loan_type|lower }}">
-                <td>
-                  <strong>{{ loan.full_name }}</strong><br />
-                  <span style="color: #666; font-size: 0.9rem"
-                    >{{ loan.user_id }}</span
-                  >
-                </td>
-                <td>
-                  <span class="loan-type {{ loan.loan_type|lower }}"
-                    >{{ loan.loan_type|title }}</span
-                  >
-                </td>
-                <td class="loan-amount">₱{{ loan.amount|floatformat:2 }}</td>
-                <td class="loan-term">{{ loan.term_months }} months</td>
-                <td class="loan-purpose">{{ loan.purpose }}</td>
-                <td>{{ loan.date_applied }}</td>
-                <td>
-                  <div class="action-buttons">
-                    <form
-                      method="POST"
-                      action="{% url 'approve_loan' %}"
-                      style="display: inline"
-                    >
-                      {% csrf_token %}
-                      <input
-                        type="hidden"
-                        name="loan_key"
-                        value="{{ loan.key }}"
-                      />
-                      <button
-                        type="submit"
-                        name="action"
-                        value="approve"
-                        class="btn btn-approve"
-                      >
-                        <i class="fas fa-check"></i>
-                      </button>
-                    </form>
-                    <form
-                      method="POST"
-                      action="{% url 'approve_loan' %}"
-                      style="display: inline"
-                    >
-                      {% csrf_token %}
-                      <input
-                        type="hidden"
-                        name="loan_key"
-                        value="{{ loan.key }}"
-                      />
-                      <button
-                        type="submit"
-                        name="action"
-                        value="reject"
-                        class="btn btn-reject"
-                      >
-                        <i class="fas fa-times"></i>
-                      </button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-              {% endfor %}
+            <tbody id="usersTableBody">
+              <!-- Sample data will be populated here -->
             </tbody>
           </table>
+
+          <!-- Empty State (shown when no data matches filters) -->
+          <div class="empty-state" id="emptyState" style="display: none">
+            <i class="fas fa-search"></i>
+            <h3>No users found</h3>
+            <p>Try adjusting your search or filter criteria</p>
+          </div>
         </div>
       </div>
     </div>
@@ -791,6 +804,12 @@
         </div>
         <div class="modal-body">
           <p id="modalMessage">Are you sure you want to perform this action?</p>
+          <div class="user-details" id="modalUserDetails">
+            <strong>User Details:</strong><br />
+            <span id="modalUserName"></span><br />
+            <span id="modalUserEmail"></span><br />
+            <span id="modalUserJoined"></span>
+          </div>
         </div>
         <div class="modal-actions">
           <button
@@ -807,142 +826,344 @@
       </div>
     </div>
 
+    <!-- Success/Error Notification -->
+    <div id="notification" class="notification">
+      <span id="notificationText"></span>
+    </div>
+
     <script>
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+
+      // Sample user data
+      const sampleUsers = [
+        {
+          id: 1,
+          first_name: "Cristy luv",
+          last_name: "Ado",
+          email: "Cluvado04@gmail.com",
+          date_joined: "2025-07-01",
+          balance: 0,
+          total_interest: 0,
+          status: "pending",
+        },
+        {
+          id: 2,
+          first_name: "John",
+          last_name: "Doe",
+          email: "john.doe@example.com",
+          date_joined: "2025-07-02",
+          balance: 5000,
+          total_interest: 250,
+          status: "pending",
+        },
+        {
+          id: 3,
+          first_name: "Jane",
+          last_name: "Smith",
+          email: "jane.smith@example.com",
+          date_joined: "2025-06-30",
+          balance: 12000,
+          total_interest: 600,
+          status: "pending",
+        },
+        {
+          id: 4,
+          first_name: "Maria",
+          last_name: "Garcia",
+          email: "maria.garcia@example.com",
+          date_joined: "2025-07-03",
+          balance: 8500,
+          total_interest: 420,
+          status: "pending",
+        },
+        {
+          id: 5,
+          first_name: "Michael",
+          last_name: "Johnson",
+          email: "michael.johnson@example.com",
+          date_joined: "2025-06-28",
+          balance: 15000,
+          total_interest: 750,
+          status: "pending",
+        },
+      ];
+
+      let currentUserId = null;
       let currentAction = null;
-      let currentLoanData = null;
+      let users = [];
 
-      // Navigation functionality
+      // Initialize dashboard
       document.addEventListener("DOMContentLoaded", function () {
-        const navLinks = document.querySelectorAll(".nav-link");
+        fetchUsers();
+        setupEventListeners();
+      });
 
+      function fetchUsers() {
+        fetch("/api/users/")
+          .then((response) => response.json())
+          .then((data) => {
+            users = data;
+            populateTable();
+            updateStats();
+          })
+          .catch((err) => {
+            console.error("Failed to fetch users:", err);
+          });
+      }
+
+      function handleUserAction(userId, action) {
+        fetch("/api/update-status/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({ user_id: userId, action: action }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              // Update local data
+              const userIndex = users.findIndex((u) => u.id === userId);
+              if (userIndex !== -1) {
+                if (action === "approve") {
+                  delete users[userIndex].status;
+                } else {
+                  users[userIndex].status = "rejected";
+                }
+              }
+
+              populateTable();
+              updateStats();
+              showNotification(
+                `User ${
+                  action === "approve" ? "approved" : "rejected"
+                } successfully.`,
+                "success"
+              );
+            } else {
+              showNotification(`Action failed: ${data.message}`, "danger");
+            }
+          })
+          .catch((err) => {
+            console.error("Update failed:", err);
+            showNotification("Something went wrong.", "danger");
+          });
+      }
+
+      function setupEventListeners() {
+        // Navigation functionality
+        const navLinks = document.querySelectorAll(".nav-link");
         navLinks.forEach((link) => {
           link.addEventListener("click", function (e) { 
             navLinks.forEach((l) => l.classList.remove("active"));
             this.classList.add("active");
-
-            const page = this.getAttribute("data-page");
-            handleNavigation(page);
+            const page = this.getAttribute("data-page"); 
           });
         });
 
-        // Search functionality
+        // Search and filter functionality
         const searchInput = document.getElementById("searchInput");
-        const typeFilter = document.getElementById("typeFilter");
-
+        const statusFilter = document.getElementById("statusFilter");
         searchInput.addEventListener("input", filterTable);
-        typeFilter.addEventListener("change", filterTable);
-      });
-
-      function handleNavigation(page) {
-        switch (page) {
-          case "dashboard":
-            showNotification("Returning to Dashboard...", "info");
-            // Simulate navigation
-            setTimeout(() => {
-              window.location.href = "{% url 'admin_dashboard' %}";
-            }, 1000);
-            break;
-          case "admin_savings_view":
-            showNotification("Navigating to Savings Approvals...", "info");
-            window.location.href = "{% url 'admin_savings' %}";
-            break;
-          case "reports":
-            showNotification("Navigating to Reports...", "info");
-            window.location.href="{% url 'reports' %}";
-            break;
-          case "logout":
-            if (confirm("Are you sure you want to logout?")) {
-              window.location.href = "{% url 'admin_logout' %}";
-            }
-            break;
-          default:
-            showNotification("Page not found", "error");
-        }
+        statusFilter.addEventListener("change", filterTable);
       }
 
-      // Filtering logic
-      function filterTable() {
-        const search = document
-          .getElementById("searchInput")
-          .value.toLowerCase();
-        const type = document.getElementById("typeFilter").value;
-        const rows = document.querySelectorAll("#loansTable tbody tr");
+       
 
-        rows.forEach((row) => {
-          const name = row.querySelector("td strong").innerText.toLowerCase();
-          const email = row.querySelector("td span").innerText.toLowerCase();
-          const loanType = row.getAttribute("data-type");
+      function populateTable() {
+        const tbody = document.getElementById("usersTableBody");
+        tbody.innerHTML = "";
 
-          const matchesSearch = name.includes(search) || email.includes(search);
-          const matchesType = type === "" || loanType === type;
+        users.forEach((user) => {
+          const row = document.createElement("tr");
+          row.setAttribute("data-status", user.status);
+          row.innerHTML = `
+      <td>${user.first_name} ${user.last_name}</td>
+      <td>${user.email}</td>
+      <td>${formatDate(user.date_joined)}</td>
+      <td>₱${Number(user.balance).toLocaleString()}</td>
+      <td>₱${Number(user.total_interest).toLocaleString()}</td>
+      <td>
+        <span class="status-badge ${user.status || "approved"}">
+        ${
+          (user.status || "approved").charAt(0).toUpperCase() +
+          (user.status || "approved").slice(1)
+        }
+        </span>
 
-          if (matchesSearch && matchesType) {
-            row.style.display = "";
-          } else {
-            row.style.display = "none";
+      </td>
+      <td>
+        <div class="action-buttons">
+          ${
+            user.status === "pending"
+              ? `
+            <button class="btn btn-approve" onclick="showConfirmModal('${user.id}', 'approve')">
+              <i class="fas fa-check"></i> Approve
+            </button>
+            <button class="btn btn-reject" onclick="showConfirmModal('${user.id}', 'reject')">
+              <i class="fas fa-times"></i> Reject
+            </button>
+          `
+              : ""
           }
+          <button class="btn btn-view" onclick="viewUser('${user.id}')">
+            <i class="fas fa-eye"></i> View
+          </button>
+        </div>
+      </td>
+    `;
+          tbody.appendChild(row);
         });
       }
 
-      // Back button function
-      function goBack() {
-        window.history.back();
+      function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
       }
 
-      // View loan details placeholder
-      function viewLoanDetails(name) {
-        alert(`Viewing details for ${name}`);
+      // Update dashboard statistics
+      function updateStats() {
+        const pending = users.filter((u) => u.status === "pending").length;
+        const approved = users.filter(
+          (u) => u.status === "approved" || !u.status
+        ).length;
+        const rejected = users.filter((u) => u.status === "rejected").length;
+        const total = pending + approved + rejected;
+
+        document.getElementById("pendingCount").textContent = pending;
+        document.getElementById("approvedCount").textContent = approved;
+        document.getElementById("rejectedCount").textContent = rejected;
+        document.getElementById("totalUsersCount").textContent = total;
       }
 
-      // Approve loan with confirmation modal
-      function approveLoan(name, amount) {
-        currentAction = "approve";
-        currentLoanData = { name, amount };
-        document.getElementById("modalTitle").innerText = "Approve Loan";
-        document.getElementById(
-          "modalMessage"
-        ).innerText = `Are you sure you want to approve ${name}'s loan for ₱${amount}?`;
-        openModal();
+      // Filter table based on search or status
+      function filterTable() {
+        const searchValue = document
+          .getElementById("searchInput")
+          .value.toLowerCase();
+        const statusValue = document.getElementById("statusFilter").value;
+
+        const filteredUsers = users.filter((user) => {
+          const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+          const matchesNameOrEmail =
+            fullName.includes(searchValue) ||
+            user.email.toLowerCase().includes(searchValue);
+          const matchesStatus =
+            statusValue === "" || user.status === statusValue;
+          return matchesNameOrEmail && matchesStatus;
+        });
+
+        const tbody = document.getElementById("usersTableBody");
+        tbody.innerHTML = "";
+
+        filteredUsers.forEach((user) => {
+          const row = document.createElement("tr");
+          row.setAttribute("data-status", user.status);
+          row.innerHTML = `
+            <td class="name-cell">${user.first_name} ${user.last_name}</td>
+            <td class="email-cell">${user.email}</td>
+            <td class="date-cell">${formatDate(user.date_joined)}</td>
+            <td class="balance-cell">₱${user.balance.toLocaleString()}</td>
+            <td class="interest-cell">₱${user.total_interest.toLocaleString()}</td>
+            <td>
+              <span class="status-badge ${user.status}">${
+            user.status.charAt(0).toUpperCase() + user.status.slice(1)
+          }</span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                ${
+                  user.status === "pending"
+                    ? `
+                  <button class="btn btn-approve" onclick="showConfirmModal(${user.id}, 'approve')">
+                    <i class="fas fa-check"></i> Approve
+                  </button>
+                  <button class="btn btn-reject" onclick="showConfirmModal(${user.id}, 'reject')">
+                    <i class="fas fa-times"></i> Reject
+                  </button>
+                `
+                    : ""
+                }
+                <button class="btn btn-view" onclick="viewUser(${user.id})">
+                  <i class="fas fa-eye"></i> View
+                </button>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
       }
 
-      // Reject loan with confirmation modal
-      function rejectLoan(name) {
-        currentAction = "reject";
-        currentLoanData = { name };
-        document.getElementById("modalTitle").innerText = "Reject Loan";
-        document.getElementById(
-          "modalMessage"
-        ).innerText = `Are you sure you want to reject ${name}'s loan?`;
-        openModal();
-      }
+      // Show confirmation modal
+      function showConfirmModal(userId, action) {
+        currentUserId = userId;
+        currentAction = action;
+        const user = users.find((u) => u.id === userId);
+        const actionText = action === "approve" ? "Approve" : "Reject";
 
-      // Confirm action from modal
-      function confirmAction() {
-        if (currentAction === "approve") {
-          alert(
-            `Loan approved for ${currentLoanData.name} - ₱${currentLoanData.amount}`
-          );
-        } else if (currentAction === "reject") {
-          alert(`Loan rejected for ${currentLoanData.name}`);
+        if (
+          confirm(
+            `Are you sure you want to ${actionText.toLowerCase()} ${
+              user.first_name
+            } ${user.last_name}?`
+          )
+        ) {
+          handleUserAction(userId, action);
         }
-        closeModal();
       }
 
-      // Open and close modal
-      function openModal() {
-        document.getElementById("confirmModal").style.display = "flex";
+      // Stub for viewing user details
+      function viewUser(userId) {
+        const user = users.find((u) => u.id === userId);
+        alert(
+          `Viewing user: ${user.first_name} ${user.last_name}\nEmail: ${user.email}`
+        );
       }
 
-      function closeModal() {
-        document.getElementById("confirmModal").style.display = "none";
-        currentAction = null;
-        currentLoanData = null;
-      }
+      // Notification function
+      function showNotification(message, type = "info") {
+        const colors = {
+          info: "#007bff",
+          success: "#28a745",
+          danger: "#dc3545",
+          warning: "#ffc107",
+        };
 
-      // Basic notification simulation
-      function showNotification(message, type) {
-        console.log(`[${type.toUpperCase()}] ${message}`);
-        // You can enhance this to show toast-like popups on the UI
+        const notification = document.createElement("div");
+        notification.textContent = message;
+        notification.style.position = "fixed";
+        notification.style.bottom = "20px";
+        notification.style.right = "20px";
+        notification.style.padding = "10px 20px";
+        notification.style.backgroundColor = colors[type] || "#007bff";
+        notification.style.color = "#fff";
+        notification.style.borderRadius = "5px";
+        notification.style.boxShadow = "0 0 10px rgba(0,0,0,0.1)";
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+          notification.remove();
+        }, 3000);
       }
     </script>
   </body>

@@ -47,6 +47,7 @@ def auth_view(request):
                         'balance': 0,
                         'total_interest': 0,
                         'date_joined': date_joined,
+                        'status': "pending"
                     })
 
                     return JsonResponse({'success': True, 'message': 'Registration successful'})
@@ -62,26 +63,54 @@ def auth_view(request):
                     # Authenticate with Firebase Authentication
                     user = auth_instance.sign_in_with_email_and_password(email, password)
 
-                    # Generate OTP and send email
-                    otp_code = random.randint(100000, 999999)
+                    # Check user status in Realtime Database
+                    user_data = None
+                    all_users = db.child("userRegistrations").get()
+                    if all_users.each():
+                        for u in all_users.each():
+                            if u.val().get("email") == email:
+                                user_data = u.val()
+                                break
 
-                    # Save OTP in Firebase
-                    email_key = email.replace('.', '_').replace('@', '_at_')
-                    db.child("userVerificationCodes").child(email_key).set({'otp': otp_code})
+                    if user_data:
+                        if user_data.get("status") == "pending":
+                            return JsonResponse({
+                                'success': False,
+                                'message': 'Your account is still pending approval. Please wait for the admin to approve your registration.'
+                            }, status=403)
 
-                    # Store email in session
-                    request.session['email'] = email
+                        if user_data.get("status") == "rejected":
+                            return JsonResponse({
+                                'success': False,
+                                'message': 'Your registration was rejected. Please contact the administrator for more details.'
+                            }, status=403)
 
-                    # Send OTP email
-                    send_mail(
-                        'Your Login OTP Code',
-                        f'Your one-time login code is: {otp_code}',
-                        'no-reply@yourdomain.com',
-                        [email],
-                        fail_silently=False,
-                    )
+                        # Generate OTP and send email
+                        otp_code = random.randint(100000, 999999)
 
-                    return JsonResponse({'success': True, 'message': 'Login successful, OTP sent. Please check spam messages also.', 'otp': otp_code})
+                        # Save OTP in Firebase
+                        email_key = email.replace('.', '_').replace('@', '_at_')
+                        db.child("userVerificationCodes").child(email_key).set({'otp': otp_code})
+
+                        # Store email and name in session
+                        request.session['email'] = email
+                        request.session['first_name'] = user_data.get("first_name")
+                        request.session['last_name'] = user_data.get("last_name")
+                        request.session['date_joined'] = user_data.get("date_joined")
+
+                        # Send OTP email
+                        send_mail(
+                            'Your Login OTP Code',
+                            f'Your one-time login code is: {otp_code}',
+                            'no-reply@yourdomain.com',
+                            [email],
+                            fail_silently=False,
+                        )
+
+                        return JsonResponse({'success': True, 'message': 'Login successful, OTP sent. Please check spam messages also.', 'otp': otp_code})
+                    else:
+                        return JsonResponse({'success': False, 'message': 'User record not found in database.'}, status=404)
+
 
                 except Exception as e:
                     print(f"Firebase login error: {e}")
@@ -95,6 +124,31 @@ def auth_view(request):
 
     return render(request, 'authentication/auth.html')
 
+@csrf_exempt
+def forgot_password(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+
+            if not email:
+                return JsonResponse({'success': False, 'message': 'Email is required'}, status=400)
+
+            try:
+                auth_instance.send_password_reset_email(email)
+                return JsonResponse({'success': True, 'message': 'Password reset email sent'})
+            except Exception as e:
+                print("Firebase error:", e)
+                # Still return success for security
+                return JsonResponse({
+                    'success': True,
+                    'message': 'If the account exists, a reset link has been sent.'
+                })
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON'}, status=400)
+
+    return render(request, 'authentication/forgot-password.html')
 
 def format_email_key(email):
     # This must match how you saved the OTP
@@ -240,6 +294,46 @@ def userDashboard(request):
         'loan_count': loan_count,
     }
     return render(request, 'user-dashboard/index.html', context)
+
+def user_profile(request):
+    email = request.session.get('email')
+    if not email:
+        return redirect('auth_view')  # Redirect to login if not authenticated
+
+    user_data = None
+    all_users = db.child("userRegistrations").get()
+
+    if all_users.each():
+        for u in all_users.each():
+            if u.val().get("email") == email:
+                user_data = u.val()
+                break
+
+    if not user_data:
+        messages.error(request, "User not found.")
+        return redirect('auth_view')
+
+    # Format birthday if needed
+    birthday = user_data.get("birthday", None)
+    if birthday:
+        try:
+            birthday = parse_date(birthday).strftime('%B %d, %Y')
+        except:
+            birthday = birthday  # leave as-is if parsing fails
+
+    context = {
+        "full_name": f"{user_data.get('first_name')} {user_data.get('last_name')}",
+        "email": user_data.get("email"),
+        "phone": user_data.get("phone", "N/A"),
+        "birthday": birthday or "N/A",
+        "balance": float(user_data.get("balance", 0.0)),
+        "interest": float(user_data.get("total_interest", 0.0)),
+        "date_joined": user_data.get("date_joined"),
+        "status": user_data.get("status", "pending").capitalize(),
+        "profile_picture": user_data.get("profile_picture", "https://firebasestorage.googleapis.com/v0/b/ctuacaccreditedboardinghouse.appspot.com/o/AlayTrabaho%2Fdefault-profileimg.png?alt=media&token=a150b652-5c6c-46e9-a6ee-895576a83d98"),
+    }
+
+    return render(request, 'user-dashboard/user-profile.html', context)
 
 def api_transaction_records(request):
     email = request.session.get('email')
@@ -774,24 +868,31 @@ def admin_login(request):
             if not email or not password:
                 return JsonResponse({'success': False, 'message': 'Email and password are required'})
 
-            # Step 1: Authenticate against Firebase Auth
+            # Step 1: Authenticate using Firebase
             try:
                 user = auth_instance.sign_in_with_email_and_password(email, password)
             except Exception:
                 return JsonResponse({'success': False, 'message': 'Invalid email or password'})
 
-            # Step 2: Check if the email matches the admin node directly
-            admin_data = db.child("admin").get().val()
+            # Step 2: Check if the email exists in any admin entry
+            admin_entries = db.child("admin").get()
+            found = False
+            role = ""
 
-            if not admin_data:
-                return JsonResponse({'success': False, 'message': 'Admin data not found in database'})
+            if admin_entries.each():
+                for item in admin_entries.each():
+                    admin_data = item.val()
+                    if admin_data.get("email") == email and admin_data.get("role") == "admin":
+                        found = True
+                        role = "admin"
+                        break
 
-            if admin_data.get("email") != email or admin_data.get("role") != "admin":
+            if not found:
                 return JsonResponse({'success': False, 'message': 'Access denied. Not authorized as admin.'})
 
-            # Success
+            # Store session
             request.session['admin_email'] = email
-            request.session['admin_role'] = 'admin'
+            request.session['admin_role'] = role
 
             return JsonResponse({'success': True})
 
@@ -816,29 +917,43 @@ def admin_dashboard(request):
     pending_loans = 0
     total_savings = Decimal('0.00')
 
+    pending_users = 0
+    approved_users = 0
+
     if users.each():
-        total_users = len(users.each())
         for user in users.each():
+            total_users += 1
             user_data = user.val()
+
+            # Count savings
             balance = user_data.get("balance", 0)
             try:
                 total_savings += Decimal(str(balance))
             except:
-                pass  # skip if balance is not a number
+                pass  # skip invalid balances
+
+            # Count status
+            status = user_data.get("status")
+            if status == "pending":
+                pending_users += 1
+            else:
+                approved_users += 1
 
     if loans.each():
         for loan in loans.each():
-            loan_data = loan.val()
-            if loan_data.get("status") == "pending":
+            if loan.val().get("status") == "pending":
                 pending_loans += 1
 
     context = {
         'today': today,
         'total_users': total_users,
         'pending_loans': pending_loans,
-        'total_savings': f"{total_savings:,.2f}",  # formatted with comma
+        'total_savings': f"{total_savings:,.2f}",
+        'pending_users': pending_users,
+        'approved_users': approved_users,
     }
     return render(request, 'admin/dashboard.html', context)
+
 
 
 def admin_savings_view(request):
@@ -1048,7 +1163,61 @@ def reports(request):
         'loan_applications': loan_applications,
     })
 
+@csrf_exempt
+def get_all_users(request):
+    try:
+        users_data = db.child("userRegistrations").get()
+        user_list = []
 
+        if users_data.each():
+            for item in users_data.each():
+                data = item.val()
+                user_list.append({
+                    "id": item.key(),
+                    "first_name": data.get("first_name", ""),
+                    "last_name": data.get("last_name", ""),
+                    "email": data.get("email", ""),
+                    "date_joined": data.get("date_joined", ""),
+                    "balance": data.get("balance", 0),
+                    "total_interest": data.get("total_interest", 0),
+                    "status": data.get("status", "approved")  # if no status = approved
+                })
+
+        return JsonResponse(user_list, safe=False)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def update_user_status(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            user_id = data.get("user_id")
+            action = data.get("action")  # "approve" or "reject"
+
+            if not user_id or not action:
+                return JsonResponse({"success": False, "message": "Missing parameters"}, status=400)
+
+            if action == "approve":
+                # Remove 'status' field
+                db.child("userRegistrations").child(user_id).child("status").remove()
+            elif action == "reject":
+                # Update status to "rejected"
+                db.child("userRegistrations").child(user_id).update({"status": "rejected"})
+            else:
+                return JsonResponse({"success": False, "message": "Invalid action"}, status=400)
+
+            return JsonResponse({"success": True})
+
+        except Exception as e:
+            return JsonResponse({"success": False, "message": str(e)}, status=500)
+
+    return JsonResponse({"success": False, "message": "Invalid request method"}, status=405)
+
+
+def user_approval(request):
+    return render(request, 'admin/user_approvals.html')
 
 def admin_logout(request):
     request.session.flush()   

@@ -10,10 +10,12 @@ urlpatterns=[
 
     #Authentication folder
     path('authentication/', views.auth_view, name='auth_view'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('verification/', views.verify, name='verify'),
 
     #User-dashboard
     path('user/dashboard/', views.userDashboard, name='userDashboard'),
+    path('user/user-profile/', views.user_profile, name='user_profile'),
     path("api/transaction-records/", views.api_transaction_records, name="api_transaction_records"),
     path('api/interest-records/', views.get_interest_records, name='get_interest_records'),
     path('user/deposit/', views.deposit, name='deposit'),
@@ -31,6 +33,9 @@ urlpatterns=[
     path('admin-sss/login/', views.admin_auth, name='admin_auth'),
     path('admin-dashboard/login/', views.admin_login, name='admin_login'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-dashboard/approve-user/', views.user_approval, name='user_approval'),
+    path('api/users/', views.get_all_users, name='get_all_users'),
+    path('api/update-status/', views.update_user_status, name='update_user_status'),
     path('admin-dashboard/reports/', views.reports, name='reports'),
     path('admin-dashboard/savings/', views.admin_savings_view, name='admin_savings'),
     path('admin-dashboard/activate_interest/<str:saving_id>/', views.activate_interest, name='activate_interest'),
